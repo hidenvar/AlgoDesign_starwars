@@ -5,5 +5,5 @@
 - [X] Set up version control
 - [X] choose the proper tech stack
 - [X] Create the project layout
-- [ ] Add MakeFile
+- [X] Add MakeFile
 - [ ] Add the external libraries
