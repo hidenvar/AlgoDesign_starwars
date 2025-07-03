@@ -47,5 +47,6 @@ clean:
 # Run
 run: all
 	./$(BIN_DIR)/StarWars
+	
 #PHONY
 .PHONY: all clean run
