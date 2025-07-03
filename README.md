@@ -6,4 +6,4 @@
 - [X] choose the proper tech stack
 - [X] Create the project layout
 - [X] Add MakeFile
-- [ ] Add the external libraries
+- [X] Add the external libraries
