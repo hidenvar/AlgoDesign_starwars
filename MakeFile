@@ -29,3 +29,10 @@ $(BUILD_DIR)/%.o: $(SRC_CORE)/%.cpp
 
 $(BUILD_DIR)/%.o: $(SRC_SCENARIOS)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Link final executable
+$(BIN_DIR)/StarWars: $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+# Default target
+all: $(BIN_DIR)/StarWars
