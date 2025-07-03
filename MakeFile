@@ -36,3 +36,8 @@ $(BIN_DIR)/StarWars: $(OBJS)
 
 # Default target
 all: $(BIN_DIR)/StarWars
+
+# Clean
+clean:
+	rm -rf $(BUILD_DIR)/*.o $(BIN_DIR)/StarWars
+	
