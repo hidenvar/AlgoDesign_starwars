@@ -20,3 +20,11 @@ CORE_OBJS = $(patsubst $(SRC_CORE)/%.cpp, $(BUILD_DIR)/%.o, $(CORE_SRCS))
 SCENARIO_SRCS = $(wildcard $(SRC_SCENARIOS)/*.cpp)
 SCENARIO_OBJS = $(patsubst $(SRC_SCENARIOS)/%.cpp, $(BUILD_DIR)/%.o, $(SCENARIO_SRCS))
 
+# Compile rules
+$(BUILD_DIR)/%.o: $(SRC_CORE)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/%.o: $(SRC_SCENARIOS)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
