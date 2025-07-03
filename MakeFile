@@ -12,4 +12,8 @@ BIN_DIR = bin
 TEST_DIR = test/scenarios
 LIB_DIR = lib
 
+# Core object files
+CORE_SRCS = $(wildcard $(SRC_CORE)/*.cpp)
+CORE_OBJS = $(patsubst $(SRC_CORE)/%.cpp, $(BUILD_DIR)/%.o, $(CORE_SRCS))
+
 
