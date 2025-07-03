@@ -16,4 +16,7 @@ LIB_DIR = lib
 CORE_SRCS = $(wildcard $(SRC_CORE)/*.cpp)
 CORE_OBJS = $(patsubst $(SRC_CORE)/%.cpp, $(BUILD_DIR)/%.o, $(CORE_SRCS))
 
+# Scenarios object files
+SCENARIO_SRCS = $(wildcard $(SRC_SCENARIOS)/*.cpp)
+SCENARIO_OBJS = $(patsubst $(SRC_SCENARIOS)/%.cpp, $(BUILD_DIR)/%.o, $(SCENARIO_SRCS))
 
