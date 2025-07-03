@@ -44,5 +44,8 @@ all: $(BIN_DIR)/StarWars
 clean:
 	rm -rf $(BUILD_DIR)/*.o $(BIN_DIR)/StarWars
 
+# Run
+run: all
+	./$(BIN_DIR)/StarWars
 #PHONY
-.PHONY: all clean
+.PHONY: all clean run
