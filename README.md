@@ -4,4 +4,4 @@
 
 - [X] Set up version control
 - [X] choose the proper tech stack
-- [ ] Create the project layout
+- [X] Create the project layout
