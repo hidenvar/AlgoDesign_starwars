@@ -1,2 +1,15 @@
+# Compiler and flags
 CC = g++
 CFLAGS = -Wall -Wextra -std=c++17 -O2 -Iinclude/core -Iinclude/scenarios -Ilib
+
+# Directories
+SRC_CORE = src/core
+SRC_SCENARIOS = src/scenario
+INC_CORE = include/core
+INC_SCENARIOS = include/scenarios
+BUILD_DIR = build
+BIN_DIR = bin
+TEST_DIR = test/scenarios
+LIB_DIR = lib
+
+
