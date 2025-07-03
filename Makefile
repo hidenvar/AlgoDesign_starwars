@@ -1,6 +1,7 @@
 # Compiler and flags
 CC = g++
 CFLAGS = -Wall -Wextra -std=c++17 -O2 -Iinclude/core -Iinclude/scenarios -Ilib
+MAKEFLAGS += -j$(shell nproc)
 
 # Directories
 SRC_CORE = src/core
