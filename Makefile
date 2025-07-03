@@ -25,13 +25,16 @@ OBJS =  $(CORE_OBJS) $(SCENARIO_OBJS)
 
 # Compile rules
 $(BUILD_DIR)/%.o: $(SRC_CORE)/%.cpp
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_SCENARIOS)/%.cpp
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Link final executable
 $(BIN_DIR)/StarWars: $(OBJS)
+	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 # Default target
