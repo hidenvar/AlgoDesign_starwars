@@ -9,4 +9,4 @@
 - [X] Add the external libraries
 - [ ] Implement general-purpose base classes
   - [X] Implement 'City' class
-  - [ ] Implement 'Missle' class
+  - [X] Implement 'Missle' class
