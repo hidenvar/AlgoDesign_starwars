@@ -1,6 +1,6 @@
 #pragma once
 
-enum class MissileType {
+enum class MissleType {
   A1,
   A2,
   A3,
