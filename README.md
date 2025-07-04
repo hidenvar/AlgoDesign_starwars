@@ -8,5 +8,5 @@
 - [X] Add MakeFile
 - [X] Add the external libraries
 - [ ] Implement general-purpose base classes
-  - [ ] Implement 'City' class
+  - [X] Implement 'City' class
   - [ ] Implement 'Missle' class
