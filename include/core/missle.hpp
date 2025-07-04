@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "missle_type.hpp"
 
 class Missle {
   public:
