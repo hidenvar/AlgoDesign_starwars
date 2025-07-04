@@ -1,11 +1,10 @@
 #pragma once
-#include <streambuf>
 #include <string>
-#include "missle_type.hpp"
+#include "missile_type.hpp"
 
-class Missle {
+class Missile {
   public:
-    Missle(std::string name, int od, int ud, int des, int st, MissleType type) :
+    Missile(std::string name, int od, int ud, int des, int st, MissileType type) :
       name(name), overalDistance(od), uncontrolledDistance(ud), destruction(des), stealth(st), type(type) {}
   private:
       std::string name;
@@ -13,5 +12,5 @@ class Missle {
       int uncontrolledDistance;
       int destruction;
       int stealth;
-      MissleType type;
+      MissileType type;
 };
