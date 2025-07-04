@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "city_type.hpp"
 
 class City {
   public:
