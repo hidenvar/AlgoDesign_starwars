@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include "missle_type.hpp"
+#include "missile_type.hpp"
 
-class Missle {
+class Missile {
   public:
   private:
       std::string name;
@@ -10,5 +10,5 @@ class Missle {
       int uncontrolledDistance;
       int destruction;
       int stealth;
-      MissleType type;
+      MissileType type;
 };
