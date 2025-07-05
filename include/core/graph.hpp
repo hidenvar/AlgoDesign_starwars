@@ -1,21 +1,26 @@
 #pragma once
 
-#include "city.hpp"
-#include <vector>
-#include <list>
-#include <unordered_map>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
+#include <city.hpp>
+#include <map>
 #include <string>
 
 class Graph {
-public:
-    void addCity(const City& city);
+ public:
+  using GraphType =
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, City,
+                            boost::property<boost::edge_weight_t, double> >;
+  using VertexDescriptor = GraphType::vertex_descriptor;
+  using EdgeDescriptor = GraphType::edge_descriptor;
 
-private:
-    double calculateDistance(const City& a, const City& b) const;
-    void addEdge(const int idx_city1, const int idx_city2);
-    void connectToAllCities(int newIndex);
+  void addCity(const City& city);
 
-    std::vector<City> cities;
-    std::vector<std::list<std::pair<int, double>>> adjList;
-    std::unordered_map<std::string, int> cityNameToIndex;
+ private:
+  GraphType g;
+  std::map<std::string, VertexDescriptor> cityNameToVertex;
+
+  double calculateDistance(const City& a, const City& b) const;
+  void connectToAllCities(VertexDescriptor newVertex);
+  void addEdge(VertexDescriptor v1, VertexDescriptor v2, double distance);
 };

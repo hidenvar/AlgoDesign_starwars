@@ -5,6 +5,8 @@
 
 class City {
  public:
+  City() = default;
+  
   City(const std::string& name, const std::string& country, double lat,
        double lon, CityType type);
   std::string getName() const;
