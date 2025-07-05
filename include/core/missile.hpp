@@ -4,8 +4,13 @@
 
 class Missile {
   public:
-    Missile(std::string name, int od, int ud, int des, int st, MissileType type) :
-      name(name), overalDistance(od), uncontrolledDistance(ud), destruction(des), stealth(st), type(type) {}
+    Missile(std::string name, int od, int ud, int des, int st, MissileType type);
+    std::string getName() const;
+    int getOveralDistance() const;
+    int getUncontrolledDistance() const;
+    int getDestruction() const;
+    int getStealth() const;
+    MissileType getType() const;
   private:
       std::string name;
       int overalDistance;
