@@ -5,3 +5,5 @@ enum class CityType {
   NORMAL,
   TARGET
 };
+
+std::istream& operator>>(std::istream& is, CityType& type);
