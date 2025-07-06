@@ -4,7 +4,7 @@
 class TargetCity : public City {
   public:
     TargetCity(const std::string& name, const std::string& country, double lat,
-       double lon, CityType type, int sp);
+       double lon, CityType type, bool sp, int dl);
     int getDefenseLevel() const;    
 
   private:

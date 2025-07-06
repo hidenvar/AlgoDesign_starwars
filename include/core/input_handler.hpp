@@ -4,7 +4,7 @@
 
 class InputHandler {
 public:
-    Graph makeGraph() const;
-
-private:
+    static void makeGraph(std::istream& input, Graph& citiesGraph);
+    static void loadFromFile(Graph& citiesGraph);
+    
 };
