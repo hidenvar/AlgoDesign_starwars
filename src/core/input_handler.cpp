@@ -1,8 +1,6 @@
-#include "input_handler.hpp"
-
 #include <iostream>
-
-#include "city_type.hpp"
+#include "../../include/core/input_handler.hpp"
+#include "../../include/core/city_type.hpp"
 
 Graph InputHandler::makeGraph() const {
   // uncomment to read from file (remember to also uncommnet the reset)
