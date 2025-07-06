@@ -31,3 +31,5 @@ double Graph::calculateDistance(const City& a, const City& b) const {
     double y_diff = b.getLatitude() - a.getLatitude();
     return std::sqrt(x_diff*x_diff + y_diff*y_diff);
 }
+
+Graph::GraphType Graph::getCitiesGraph() const { return citiesGraph; }
