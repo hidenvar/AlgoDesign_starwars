@@ -22,5 +22,5 @@ class City {
   int latitude;
   int longitude;
   CityType type;
-  bool hasSpy;
+  bool spy;
 };
