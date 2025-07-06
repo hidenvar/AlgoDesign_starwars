@@ -1,32 +1,31 @@
 #include <iostream>
+#include <sstream>
 #include "../../include/core/input_handler.hpp"
 #include "../../include/core/city_type.hpp"
 
-Graph InputHandler::makeGraph() const {
-  // uncomment to read from file (remember to also uncommnet the reset)
-  //freopen("map.txt", "r", stdin);
-  int numCities;
-  std::cin >> numCities;
+void InputHandler::loadFromFile(Graph &citiesGraph) {
+  if (!freopen("map.txt", "r", stdin)) {
+    std::cerr << "Error: could not redirect stdin to file\nHint: the input stream will be standard input stream\n";
+    freopen("/dev/tty", "r", stdin);
+  }
+  makeGraph(std::cin, citiesGraph);
+}
 
-  Graph graph;
 
-  for (int i = 0; i < numCities; i++) {
-    std::string cityName;
-    std::cin >> cityName;
-    std::string countryName;
-    std::cin >> countryName;
-    int latitude;
-    std::cin >> latitude;
-    int longitude;
-    std::cin >> longitude;
+void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
+  std::string line;
+  while (std::getline(input, line)) {
+    if (line.empty()) break;
+
+    std::istringstream iss(line);
+    std::string name, country;
     CityType type;
-    std::cin >> type;
+    double lat, lon;
+    int sp;
 
-    City city(cityName, countryName, latitude, longitude, type);
-    graph.addCity(city);
+    iss >> name >> country >> lat >> lon >> type >> sp;
+    
   }
 
-  //freopen("/dev/tty", "r", stdin); // reset to console input 
-
-  return graph;
 }
+
