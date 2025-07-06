@@ -19,9 +19,10 @@ class Graph {
   using EdgeDescriptor = GraphType::edge_descriptor;
 
   void addCity(const City& city);
-  GraphType getCityGraph() const;
+  GraphType getCitiesGraph() const;
+
  private:
-  GraphType g;
+  GraphType citiesGraph;
   std::map<std::string, VertexDescriptor> cityNameToVertex;
 
   double calculateDistance(const City& a, const City& b) const;

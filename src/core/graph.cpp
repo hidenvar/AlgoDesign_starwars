@@ -3,27 +3,27 @@
 #include "../../include/core/graph.hpp"
 
 void Graph::addCity(const City& city) {
-    VertexDescriptor newVertex = boost::add_vertex(city, g);
+    VertexDescriptor newVertex = boost::add_vertex(city, citiesGraph);
     cityNameToVertex[city.getName()] = newVertex;
     
-    if (boost::num_vertices(g) > 1) {
+    if (boost::num_vertices(citiesGraph) > 1) {
         connectToAllCities(newVertex);
     }
 }
 
 void Graph::connectToAllCities(VertexDescriptor newVertex) {
-    auto [vi, vi_end] = boost::vertices(g);
+    auto [vi, vi_end] = boost::vertices(citiesGraph);
     for (; vi != vi_end; ++vi) {
         if (*vi != newVertex) {
-            double distance = calculateDistance(g[newVertex], g[*vi]);
+            double distance = calculateDistance(citiesGraph[newVertex], citiesGraph[*vi]);
             addEdge(newVertex, *vi, distance);
         }
     }
 }
 
 void Graph::addEdge(VertexDescriptor v1, VertexDescriptor v2, double distance) {
-    auto edge = boost::add_edge(v1, v2, g);
-    boost::put(boost::edge_weight, g, edge.first, distance);
+    auto edge = boost::add_edge(v1, v2, citiesGraph);
+    boost::put(boost::edge_weight, citiesGraph, edge.first, distance);
 }
 
 double Graph::calculateDistance(const City& a, const City& b) const {
