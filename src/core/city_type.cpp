@@ -1,5 +1,5 @@
 #include<iostream>
-#include "city_type.hpp"
+#include "../../include/core/city_type.hpp"
 
 
 std::istream& operator>>(std::istream& is, CityType& type) {
