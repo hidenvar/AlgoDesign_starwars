@@ -8,9 +8,13 @@
 
 class Graph {
  public:
-  using GraphType =
-      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, City,
-                            boost::property<boost::edge_weight_t, double> >;
+  using EdgeWeight = boost::property<boost::edge_weight_t, double>;
+  using GraphType = boost::adjacency_list<
+    boost::vecS,
+    boost::vecS,
+    boost::undirectedS,
+    City,
+    EdgeWeight>;
   using VertexDescriptor = GraphType::vertex_descriptor;
   using EdgeDescriptor = GraphType::edge_descriptor;
 
