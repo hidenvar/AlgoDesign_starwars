@@ -33,3 +33,5 @@ double Graph::calculateDistance(const City& a, const City& b) const {
 }
 
 Graph::GraphType Graph::getCitiesGraph() const { return citiesGraph; }
+
+std::map<std::string, Graph::VertexDescriptor> Graph::getCitiesVertex() const { return cityNameToVertex; }

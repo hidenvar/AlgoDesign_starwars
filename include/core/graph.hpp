@@ -20,7 +20,7 @@ class Graph {
 
   void addCity(const City& city);
   GraphType getCitiesGraph() const;
-  std::map<std::string, VertexDescriptor> getCitiesVertices() const;
+  std::map<std::string, VertexDescriptor> getCitiesVertex() const;
   
  private:
   GraphType citiesGraph;
