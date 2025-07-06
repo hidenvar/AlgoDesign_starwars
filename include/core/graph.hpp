@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/properties.hpp>
@@ -8,17 +9,18 @@
 
 class Graph {
  public:
+  using CityPtr = std::shared_ptr<City>;
   using EdgeWeight = boost::property<boost::edge_weight_t, double>;
   using GraphType = boost::adjacency_list<
     boost::vecS,
     boost::vecS,
     boost::undirectedS,
-    City,
+    CityPtr,
     EdgeWeight>;
   using VertexDescriptor = GraphType::vertex_descriptor;
   using EdgeDescriptor = GraphType::edge_descriptor;
 
-  void addCity(const City& city);
+  void addCity(CityPtr city);
   GraphType getCitiesGraph() const;
   std::map<std::string, VertexDescriptor> getCitiesVertex() const;
   

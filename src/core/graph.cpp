@@ -2,9 +2,9 @@
 #include <boost/graph/graph_traits.hpp>
 #include "../../include/core/graph.hpp"
 
-void Graph::addCity(const City& city) {
+void Graph::addCity(Graph::CityPtr city) {
     VertexDescriptor newVertex = boost::add_vertex(city, citiesGraph);
-    cityNameToVertex[city.getName()] = newVertex;
+    cityNameToVertex[city->getName()] = newVertex;
     
     if (boost::num_vertices(citiesGraph) > 1) {
         connectToAllCities(newVertex);
@@ -15,7 +15,7 @@ void Graph::connectToAllCities(VertexDescriptor newVertex) {
     auto [vi, vi_end] = boost::vertices(citiesGraph);
     for (; vi != vi_end; ++vi) {
         if (*vi != newVertex) {
-            double distance = calculateDistance(citiesGraph[newVertex], citiesGraph[*vi]);
+            double distance = calculateDistance(*citiesGraph[newVertex], *citiesGraph[*vi]);
             addEdge(newVertex, *vi, distance);
         }
     }
