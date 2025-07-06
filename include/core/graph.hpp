@@ -1,10 +1,10 @@
 #pragma once
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/properties.hpp>
-#include <city.hpp>
 #include <map>
 #include <string>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
+#include "city.hpp"
 
 class Graph {
  public:
