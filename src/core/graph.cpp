@@ -1,7 +1,6 @@
-#include "graph.hpp"
 #include <cmath>
 #include <boost/graph/graph_traits.hpp>
-
+#include "../../include/core/graph.hpp"
 
 void Graph::addCity(const City& city) {
     VertexDescriptor newVertex = boost::add_vertex(city, g);
