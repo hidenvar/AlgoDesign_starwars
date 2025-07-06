@@ -1,7 +1,6 @@
 #include<iostream>
 #include "city_type.hpp"
 
-#include "city_type.hpp"
 
 std::istream& operator>>(std::istream& is, CityType& type) {
     std::string input;
