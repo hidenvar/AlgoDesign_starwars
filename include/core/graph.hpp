@@ -19,7 +19,7 @@ class Graph {
   using EdgeDescriptor = GraphType::edge_descriptor;
 
   void addCity(const City& city);
-
+  GraphType getCityGraph() const;
  private:
   GraphType g;
   std::map<std::string, VertexDescriptor> cityNameToVertex;
