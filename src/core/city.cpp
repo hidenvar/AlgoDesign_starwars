@@ -1,15 +1,17 @@
 #include "../../include/core/city.hpp"
 
 City::City(const std::string& name, const std::string& country, double lat,
-           double lon, CityType type)
+           double lon, CityType type, int sp)
     : cityName(name),
       countryName(country),
       latitude(lat),
       longitude(lon),
-      type(type) {}
+      type(type),
+      spies(sp) {}
 
 std::string City::getName() const { return cityName; }
 std::string City::getCountry() const { return countryName; }
 double City::getLatitude() const { return latitude; }
 double City::getLongitude() const { return longitude; }
 CityType City::getType() const { return type; }
+int City::getSpies() const { return spies; }

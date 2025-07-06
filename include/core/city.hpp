@@ -8,12 +8,13 @@ class City {
   City() = default;
   
   City(const std::string& name, const std::string& country, double lat,
-       double lon, CityType type);
+       double lon, CityType type, int sp);
   std::string getName() const;
   std::string getCountry() const;
   double getLatitude() const;
   double getLongitude() const;
   CityType getType() const;
+  int getSpies() const;
 
  private:
   std::string cityName;
@@ -21,4 +22,5 @@ class City {
   int latitude;
   int longitude;
   CityType type;
+  int spies;
 };
