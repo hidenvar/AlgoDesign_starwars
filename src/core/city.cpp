@@ -14,4 +14,4 @@ std::string City::getCountry() const { return countryName; }
 double City::getLatitude() const { return latitude; }
 double City::getLongitude() const { return longitude; }
 CityType City::getType() const { return type; }
-int City::getSpies() const { return spies; }
+bool City::hasSpy() const { return hasSpy; }

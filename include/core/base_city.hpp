@@ -8,7 +8,7 @@
 class BaseCity : public City {
   public:
     BaseCity(const std::string& name, const std::string& country, double lat, 
-             double lon, CityType type, int sp, std::vector<std::pair<Missile, int>> mc);
+             double lon, CityType type, bool sp, std::vector<std::pair<Missile, int>> mc);
     
     
   private:
