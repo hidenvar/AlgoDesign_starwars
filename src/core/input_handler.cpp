@@ -22,7 +22,7 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
     std::istringstream iss(line);
     std::string name, country;
     CityType type;
-    int lat, lon;
+    double lat, lon;
     int sp;
 
     iss >> name >> country >> lat >> lon >> type >> sp;
