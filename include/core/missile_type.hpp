@@ -10,3 +10,5 @@ enum class MissileType {
   C2,
   D1
 };
+
+std::istream& operator>>(std::istream& is, MissileType& type);
