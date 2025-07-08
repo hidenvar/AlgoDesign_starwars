@@ -14,6 +14,8 @@
 #include "../../include/core/city.hpp"
 #include "../../include/core/graph.hpp"
 #include "../../include/core/input_handler.hpp"
+#include "base_city.hpp"
+#include "target_city.hpp"
 
 // Define exception to stop search when goal is found
 struct goal_found : public std::exception {
@@ -261,6 +263,49 @@ void printShortestPathIgnoringSpies(const Graph& g, const std::string& srcName, 
     std::cout << "END\nTotal distance: " << distances[dest] << "\n";
 }
 
+std::string cityTypeToString(CityType type) {
+    switch(type) {
+        case CityType::NORMAL: return "normal";
+        case CityType::BASE: return "base";
+        case CityType::TARGET: return "target";
+        default: return "unknown";
+    }
+}
+
+void printGraph(const Graph& graph) {
+    auto citiesGraph = graph.getCitiesGraph();
+    
+    // Iterate over all vertices
+    auto [vi, vi_end] = boost::vertices(citiesGraph);
+    for (; vi != vi_end; ++vi) {
+        auto cityPtr = citiesGraph[*vi];
+
+        std::cout << cityPtr->getName() << " "
+                  << cityPtr->getCountry() << " "
+                  << cityPtr->getLatitude() << " "
+                  << cityPtr->getLongitude() << " "
+                  << cityTypeToString(cityPtr->getType()) << " "
+                  << cityPtr->hasSpy();
+
+        if (cityPtr->getType() == CityType::BASE) {
+            auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(cityPtr);
+            if (baseCityPtr) {
+                for (const auto& [missile, count] : baseCityPtr->getMissiles()) {
+                    std::cout << " " << missile.getName() << " " << count;
+                }
+            }
+        } 
+        else if (cityPtr->getType() == CityType::TARGET) {
+            auto targetCityPtr = std::dynamic_pointer_cast<TargetCity>(cityPtr);
+            if (targetCityPtr) {
+                std::cout << " " << targetCityPtr->getDefenseLevel();
+            }
+        }
+
+        std::cout << "\n";
+    }
+}
+
 int main() {
     Graph g;
     InputHandler::loadFromFile(g);
@@ -268,7 +313,8 @@ int main() {
     // runAStar(g, "Zarnovia", "Xenvar");
     // runDijkstra(g, "Zarnovia", "Xenvar");
     // printAllCityDistances(g);
-    // printAllCityDistances(g);
-    printShortestPathIgnoringSpies(g, "Zarnovia", "Xenvar");
+    printAllCityDistances(g);
+    printShortestPathIgnoringSpies(g, "Zarnovia", "Thandor");
+    // printGraph(g);
     return 0;
 }

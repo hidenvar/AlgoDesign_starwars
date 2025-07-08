@@ -4,6 +4,7 @@
 #include "../../include/core/city_type.hpp"
 #include "../../include/core/base_city.hpp"
 #include "../../include/core/target_city.hpp"
+#include "missile_factory.hpp"
 
 void InputHandler::loadFromFile(Graph &citiesGraph) {
   if (!freopen("map.txt", "r", stdin)) {
@@ -33,10 +34,10 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
     }
     else if (type == CityType::BASE) {
       std::vector<std::pair<Missile, int>> missiles;
-      std::string missileName;
+      MissileType mt;
       int missileCount;
-      while(iss >> missileName >> missileCount) {
-        // missiles.emplace_back(missileName, missileCount); // todo : need completed missile implementation
+      while(iss >> mt >> missileCount) {
+        missiles.emplace_back(MissileFactory::getMissile(mt), missileCount); // todo : need completed missile implementation
       }
       auto baseCity = std::make_shared<BaseCity>(name, country, lat, lon, type, sp, missiles);
       citiesGraph.addCity(baseCity);
