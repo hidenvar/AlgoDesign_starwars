@@ -5,20 +5,24 @@
 void Graph::addCity(Graph::CityPtr city) {
     VertexDescriptor newVertex = boost::add_vertex(city, citiesGraph);
     cityNameToVertex[city->getName()] = newVertex;
-    
-    if (boost::num_vertices(citiesGraph) > 1) {
-        connectToAllCities(newVertex);
-    }
 }
 
-void Graph::connectToAllCities(VertexDescriptor newVertex) {
-    auto [vi, vi_end] = boost::vertices(citiesGraph);
-    for (; vi != vi_end; ++vi) {
-        if (*vi != newVertex) {
-            double distance = calculateDistance(*citiesGraph[newVertex], *citiesGraph[*vi]);
-            addEdge(newVertex, *vi, distance);
-        }
+void Graph::connectCities(std::string& a, std::string& b) {
+    auto it1 = cityNameToVertex.find(a);
+    auto it2 = cityNameToVertex.find(b);
+
+    if (it1 == cityNameToVertex.end() || it2 == cityNameToVertex.end()) {
+        throw std::runtime_error("One or both city names not found.");
     }
+
+    VertexDescriptor v1 = it1->second;
+    VertexDescriptor v2 = it2->second;
+
+    const auto city1 = citiesGraph[v1];
+    const auto city2 = citiesGraph[v2];
+
+    double distance = calculateDistance(*city1, *city2);
+    addEdge(v1, v2, distance);
 }
 
 void Graph::addEdge(VertexDescriptor v1, VertexDescriptor v2, double distance) {
