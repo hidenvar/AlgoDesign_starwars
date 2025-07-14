@@ -9,6 +9,6 @@
 - [X] Add the external libraries
 - [ ] Implement general-purpose base classes
   - [X] Implement 'City' class
-    - [ ] Implement general map via 'City' class
+    - [X] Implement general map via 'City' class
   - [X] Implement 'Missle' class
     - [ ] Implement diffrent missles via 'Missle' class
