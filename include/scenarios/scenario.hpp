@@ -8,10 +8,10 @@ class Scenario {
 
   virtual void initialize() = 0;
   virtual void solve() = 0;
-  
+
   virtual ~Scenario() = default;
   
- private:
+ protected:
   Graph mapInformation;
 
 };

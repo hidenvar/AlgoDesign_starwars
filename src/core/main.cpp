@@ -75,5 +75,6 @@ int main() {
     Graph g;
     InputHandler::loadFromFile(g);
     Scenario1 s(g);
+    s.initialize();
     s.printAllCities();
 }

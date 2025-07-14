@@ -5,7 +5,7 @@
 
 Scenario::Scenario(Graph &g): mapInformation(g){}
 
-void Scenario::printAllCities(){
+void Scenario::printAllCities() {
     auto graphData = mapInformation.getCitiesGraph();
     auto cityMap = mapInformation.getCitiesVertex();
 
@@ -52,14 +52,16 @@ void Scenario::printAllCities(){
             }
         }
 
-        // Show connected cities (neighbors)
+        // Show connected cities with distances
         std::cout << "Connected to: ";
         bool first = true;
         auto [ei, ei_end] = boost::out_edges(*vi, graphData);
         for (; ei != ei_end; ++ei) {
             auto target = boost::target(*ei, graphData);
+            double distance = boost::get(boost::edge_weight_t(), graphData, *ei); // Get edge weight
+            
             if (!first) std::cout << ", ";
-            std::cout << vertexToName[target];
+            std::cout << vertexToName[target] << " (" << distance << " km)";
             first = false;
         }
         if (first) std::cout << "None"; // No neighbors
