@@ -2,7 +2,7 @@
 
 BaseCity::BaseCity(const std::string& name, const std::string& country, double lat, 
                    double lon, CityType type, bool sp, std::vector<std::pair<Missile, int>> mc)
-        : City(name, country, lat, lon, type, sp), missileCount(mc) {}
+        : City(name, country, lat, lon, type, sp), missileInfo(mc) {}
     
     
-std::vector<std::pair<Missile, int>> BaseCity::getMissiles() const { return missileCount; }
+std::vector<std::pair<Missile, int>> BaseCity::getMissiles() const { return missileInfo; }

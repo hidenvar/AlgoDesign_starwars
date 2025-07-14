@@ -4,6 +4,7 @@
 #include "../../include/core/city_type.hpp"
 #include "../../include/core/base_city.hpp"
 #include "../../include/core/target_city.hpp"
+#include "missile_factory.hpp"
 
 void InputHandler::loadFromFile(Graph &citiesGraph) {
   if (!freopen("map.txt", "r", stdin)) {
@@ -34,10 +35,19 @@ void InputHandler::createCities(std::istream& input, Graph& citiesGraph) {
     }
     else if (type == CityType::BASE) {
       std::vector<std::pair<Missile, int>> missiles;
-      std::string missileName;
-      int missileCount;
-      while(iss >> missileName >> missileCount) {
-        // missiles.emplace_back(missileName, missileCount); // todo : need completed missile implementation
+      MissileFactory mf;
+      int missileTypesCount;
+      iss >> missileTypesCount; // how many differnt types of missles do we have
+
+      for(int i = 0; i < missileTypesCount; i++){
+        MissileType thisMissileType;
+        iss >> thisMissileType;
+
+        int thisMissileCount;
+        iss >> thisMissileCount;
+
+        auto tempMissle = mf.getMissile(thisMissileType);
+        missiles.emplace_back(tempMissle, thisMissileCount);
       }
       auto baseCity = std::make_shared<BaseCity>(name, country, lat, lon, type, sp, missiles);
       citiesGraph.addCity(baseCity);
@@ -51,6 +61,10 @@ void InputHandler::createCities(std::istream& input, Graph& citiesGraph) {
   }
 }
 
+/*
+  note: this graph maker only works if only instantly called after the createCities read half file info
+  careful when using and TODO: change structure if possible
+*/ 
 void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
   std::string line;
   while (std::getline(input, line)) {
@@ -58,6 +72,19 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
       std::istringstream iss(line);
       std::string it1, it2;
       iss >> it1 >> it2;
+      std::cout << "connnecting... \n";
       citiesGraph.connectCities(it1, it2);
   }
 }
+
+
+/*
+input format for each city type
+NORMAL city : name country lat lon type  spyCount
+BASE city : name country lat lon type  spyCount missileTypeCount first_missileTye first_TypeCount seconf_missileTye second_TypeCount
+TARGET city : name country lat lon type  spyCount defence_level
+... required line break here, cinnected cities below
+city1 city2
+city2 city5
+
+*/

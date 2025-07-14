@@ -12,5 +12,5 @@ class BaseCity : public City {
     
     std::vector<std::pair<Missile, int>> getMissiles() const;
   private:
-    std::vector<std::pair<Missile, int>> missileCount;
+    std::vector<std::pair<Missile, int>> missileInfo;
 };
