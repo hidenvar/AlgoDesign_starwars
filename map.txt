@@ -1,0 +1,12 @@
+Zarnovia CountryA 10 20 base 0 A2 10 D1 2
+Eldorath CountryB 11 21 target 1 10
+Valkur CountryA 12 22 normal 0
+Merithal CountryA 13 23 normal 1
+Tarnhelm CountryA 14 24 normal 0
+Xenvar CountryA 15 25 normal 0
+Bravonis CountryA 16 26 base 0 B2 12 C1 10 C2 5
+Thandor CountryA 17 27 normal 0
+
+Zarnovia Valkur
+Valkur Merithal
+Merithal Tarnhelm
