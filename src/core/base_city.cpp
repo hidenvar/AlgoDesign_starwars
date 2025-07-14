@@ -5,3 +5,4 @@ BaseCity::BaseCity(const std::string& name, const std::string& country, double l
         : City(name, country, lat, lon, type, sp), missileCount(mc) {}
     
     
+std::vector<std::pair<Missile, int>> BaseCity::getMissiles() const { return missileCount; }

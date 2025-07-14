@@ -10,11 +10,12 @@ void InputHandler::loadFromFile(Graph &citiesGraph) {
     std::cerr << "Error: could not redirect stdin to file\nHint: the input stream will be standard input stream\n";
     freopen("/dev/tty", "r", stdin);
   }
+  createCities(std::cin, citiesGraph);
   makeGraph(std::cin, citiesGraph);
 }
 
 
-void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
+void InputHandler::createCities(std::istream& input, Graph& citiesGraph) {
   std::string line;
   while (std::getline(input, line)) {
     if (line.empty()) break;
@@ -50,3 +51,13 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
   }
 }
 
+void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
+  std::string line;
+  while (std::getline(input, line)) {
+    if (line.empty()) break;
+      std::istringstream iss(line);
+      std::string it1, it2;
+      iss >> it1 >> it2;
+      citiesGraph.connectCities(it1, it2);
+  }
+}
