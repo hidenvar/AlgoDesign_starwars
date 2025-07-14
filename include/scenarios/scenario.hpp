@@ -6,11 +6,12 @@ class Scenario {
   Scenario(Graph& g);
   void printAllCities();
 
-  virtual void initialize(){};
-  virtual void solve(){};
+  virtual void initialize() = 0;
+  virtual void solve() = 0;
+  
   virtual ~Scenario() = default;
   
  private:
   Graph mapInformation;
-  
+
 };

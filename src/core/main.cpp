@@ -3,7 +3,7 @@
 #include "input_handler.hpp"
 #include "base_city.hpp"
 #include "target_city.hpp"
-#include "scenario.hpp"
+#include "scenario1.hpp"
 
 
 // void printAllCities(const Graph& graph) {
@@ -74,6 +74,6 @@
 int main() {
     Graph g;
     InputHandler::loadFromFile(g);
-    Scenario s(g);
+    Scenario1 s(g);
     s.printAllCities();
 }
