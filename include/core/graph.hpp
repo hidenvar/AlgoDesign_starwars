@@ -23,12 +23,12 @@ class Graph {
   void addCity(CityPtr city);
   GraphType getCitiesGraph() const;
   std::map<std::string, VertexDescriptor> getCitiesVertex() const;
+  void connectCities(std::string& a, std::string& b);
   
  private:
   GraphType citiesGraph;
   std::map<std::string, VertexDescriptor> cityNameToVertex;
 
   double calculateDistance(const City& a, const City& b) const;
-  void connectToAllCities(VertexDescriptor newVertex);
   void addEdge(VertexDescriptor v1, VertexDescriptor v2, double distance);
 };
