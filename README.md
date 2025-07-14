@@ -11,4 +11,4 @@
   - [X] Implement 'City' class
     - [X] Implement general map via 'City' class
   - [X] Implement 'Missle' class
-    - [ ] Implement diffrent missles via 'Missle' class
+    - [X] Implement diffrent missles via 'Missle' class
