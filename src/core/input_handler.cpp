@@ -12,7 +12,7 @@ void InputHandler::loadFromFile(Graph &citiesGraph) {
     freopen("/dev/tty", "r", stdin);
   }
   createCities(std::cin, citiesGraph);
-  makeGraph(std::cin, citiesGraph);
+  //makeGraph(std::cin, citiesGraph);
 }
 
 
@@ -72,7 +72,6 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
       std::istringstream iss(line);
       std::string it1, it2;
       iss >> it1 >> it2;
-      std::cout << "connnecting... \n";
       citiesGraph.connectCities(it1, it2);
   }
 }
