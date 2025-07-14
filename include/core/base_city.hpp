@@ -10,7 +10,7 @@ class BaseCity : public City {
     BaseCity(const std::string& name, const std::string& country, double lat, 
              double lon, CityType type, bool sp, std::vector<std::pair<Missile, int>> mc);
     
-    
+    std::vector<std::pair<Missile, int>> getMissiles() const;
   private:
     std::vector<std::pair<Missile, int>> missileCount;
 };
