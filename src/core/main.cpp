@@ -77,4 +77,14 @@ int main() {
     Scenario1 s(g);
     s.initialize();
     s.printAllCities();
+    s.findPaths();
+
+    for (const auto& path : s.getPaths()) {
+    std::cout << "Path (" << path.spyCount << " spies): ";
+    for (const auto& city : path.cities) {
+        std::cout << city << " ";
+    }
+    std::cout << "\n";
+
+    }
 }
