@@ -75,16 +75,19 @@ int main() {
     Graph g;
     InputHandler::loadFromFile(g);
     Scenario1 s(g);
+    // std::cout << "initializing ... \n";
     s.initialize();
+    // std::cout << "printing cities...\n";
     s.printAllCities();
+    // std::cout << "finding paths...\n";
     s.findPaths();
 
+    // std:: cout << "printing paths...\n";
     for (const auto& path : s.getPaths()) {
-    std::cout << "Path (" << path.spyCount << " spies): ";
-    for (const auto& city : path.cities) {
+      std::cout << "Path (" << path.spyCount << " spies): ";
+      for (const auto& city : path.cities) {
         std::cout << city << " ";
-    }
-    std::cout << "\n";
-
+      }
+      std::cout << "\n";
     }
 }

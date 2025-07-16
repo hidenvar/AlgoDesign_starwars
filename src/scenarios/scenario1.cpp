@@ -1,6 +1,7 @@
 #include "scenario1.hpp"
 #include <queue>
 #include <boost/graph/adjacency_list.hpp>
+#include<iostream>
 
 Scenario1::Scenario1(Graph& g) : Scenario(g) {}
 
@@ -39,8 +40,8 @@ void Scenario1::initialize() {
 
 void Scenario1::findPaths() {
     const auto& citiesGraph = Scenario::mapInformation.getCitiesGraph();
-    std::vector<Graph::VertexDescriptor> baseVertices;
-    std::vector<Graph::VertexDescriptor> targetVertices;
+    // std::vector<Graph::VertexDescriptor> baseVertices;
+    // std::vector<Graph::VertexDescriptor> targetVertices;
 
     // Identify base and target cities
     auto vertices = boost::vertices(citiesGraph);
@@ -73,6 +74,8 @@ void Scenario1::findPaths() {
             if (isTarget) {
                 // Convert path to city names and count spies
                 PathInfo pathInfo;
+                pathInfo.base = base;
+                pathInfo.target = currentVertex;
                 int spyCount = 0;
                 
                 for (auto vd : currentPath) {
@@ -104,3 +107,5 @@ void Scenario1::findPaths() {
 }
 
 const std::vector<Scenario1::PathInfo>& Scenario1::getPaths() const {return paths;}
+const std::vector<Graph::VertexDescriptor> Scenario1::getBaseVertices() const {return baseVertices;}
+const std::vector<Graph::VertexDescriptor> Scenario1::getTargetVertices() const {return targetVertices;}
