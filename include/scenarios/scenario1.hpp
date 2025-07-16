@@ -13,15 +13,20 @@ class Scenario1 : public Scenario{
         std::vector<std::string> cities;
         int spyCount;
     };
-    void solve() override {}
+    void solve() override;
 
     const std::vector<PathInfo>& getPaths() const;
     const std::vector<Graph::VertexDescriptor> getBaseVertices() const;
     const std::vector<Graph::VertexDescriptor> getTargetVertices() const;
+    void buildBaseToPathsMap();
+    const std::vector<PathInfo>& getPathsFromBase(Graph::VertexDescriptor base) const;
 
     private:
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
+
+    // map : base -> vector of paths that start from that base
+    std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>> baseToPathsMap;
 
     std::vector<PathInfo> paths; 
 

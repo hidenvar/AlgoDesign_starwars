@@ -75,19 +75,19 @@ int main() {
     Graph g;
     InputHandler::loadFromFile(g);
     Scenario1 s(g);
-    // std::cout << "initializing ... \n";
-    s.initialize();
-    // std::cout << "printing cities...\n";
-    s.printAllCities();
-    // std::cout << "finding paths...\n";
-    s.findPaths();
+    s.solve();
+    auto bases = s.getBaseVertices();
 
-    // std:: cout << "printing paths...\n";
-    for (const auto& path : s.getPaths()) {
-      std::cout << "Path (" << path.spyCount << " spies): ";
-      for (const auto& city : path.cities) {
-        std::cout << city << " ";
-      }
-      std::cout << "\n";
+    // todo : we have cities vertices here, we can update to see names instead of vertices;
+    // to update to name, we should store names inside vectors, do some changes to find path function to do this.
+    for (auto b : bases){
+        auto paths = s.getPathsFromBase(b);
+        std::cout << "base: " << b << '\n';
+        if (paths.empty()) std:: cout << "no path was found form this base\n";
+        for (auto p : paths){
+            std::cout << "path from " << p.base << " to " << p.target << "\n";
+            for (auto x : p.cities) std::cout << x << " ";
+            std::cout << '\n';
+        }
     }
 }

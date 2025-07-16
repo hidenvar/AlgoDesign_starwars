@@ -5,6 +5,7 @@
 
 Scenario1::Scenario1(Graph& g) : Scenario(g) {}
 
+// create a graph that connects two cities if their distance is less than uncontrolledDistance
 void Scenario1::initialize() {
   int uncontrolledDistance = 500;
 
@@ -38,6 +39,7 @@ void Scenario1::initialize() {
   }
 }
 
+// performs bfs on the graph to find all paths from base to target
 void Scenario1::findPaths() {
     const auto& citiesGraph = Scenario::mapInformation.getCitiesGraph();
     // std::vector<Graph::VertexDescriptor> baseVertices;
@@ -104,6 +106,27 @@ void Scenario1::findPaths() {
             }
         }
     }
+}
+
+void Scenario1::buildBaseToPathsMap() {
+  baseToPathsMap.clear();
+  for (const auto& path : paths) {
+    baseToPathsMap[path.base].push_back(path);
+    // todo: complete this sort funtion write custom sort funtion to sort by spycount
+    // sort(baseToPathsMap[path.base])
+  }
+}
+
+const std::vector<Scenario1::PathInfo>& Scenario1::getPathsFromBase(Graph::VertexDescriptor base) const {
+  static const std::vector<PathInfo> empty;  // empty vector for missing keys
+  auto it = baseToPathsMap.find(base);
+  return (it != baseToPathsMap.end()) ? it->second : empty;
+}
+
+void Scenario1::solve() {
+    initialize();
+    findPaths();
+    buildBaseToPathsMap();
 }
 
 const std::vector<Scenario1::PathInfo>& Scenario1::getPaths() const {return paths;}
