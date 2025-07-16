@@ -11,3 +11,4 @@ the provided map is a very simple map for scenario1
 city1 : our only base city
 city3 , city4 : dummy normal cities
 city2: helper city for target 6
+city7: unreachable target city (no path for this city) 
