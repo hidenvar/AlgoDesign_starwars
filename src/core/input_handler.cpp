@@ -7,10 +7,6 @@
 #include "missile_factory.hpp"
 
 void InputHandler::loadFromFile(Graph &citiesGraph) {
-  if (!freopen("map.txt", "r", stdin)) {
-    std::cerr << "Error: could not redirect stdin to file\nHint: the input stream will be standard input stream\n";
-    freopen("/dev/tty", "r", stdin);
-  }
   createCities(std::cin, citiesGraph);
   //makeGraph(std::cin, citiesGraph);
 }

@@ -71,30 +71,15 @@
 // }
 
 
-// int main() {
-//     Graph g;
-//     InputHandler::loadFromFile(g);
-//     Scenario1 s(g);
-//     s.solve();
-//     auto bases = s.getBaseVertices();
-//     auto cities = g.getCitiesGraph();
-
-
-//     for (auto b : bases){
-//         auto paths = s.getPathsFromBase(b);
-//         std::cout << "base: " << cities[b]->getName() << '\n';
-//         if (paths.empty()) std:: cout << "no path was found form this base\n";
-//         for (auto p : paths){
-//             std::cout << "path from " << cities[p.base]->getName() << " to " << cities[p.target]->getName() << "\n";
-//             for (auto x : p.cities) std::cout << x << " ";
-//             std::cout << '\n';
-//         }
-//     }
-// }
-
-int main(){
+int main(int argc, char* argv[]) {
+    if (argc < 2) return 0;
     Graph g;
     InputHandler::loadFromFile(g);
-    Scenario1 s(g);
-    s.solve();
+
+    int scenario = std::stoi(argv[1]);
+    switch (scenario) {
+        case 1:
+            printAllCities(g);
+            break;
+        }
 }
