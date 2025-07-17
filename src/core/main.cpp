@@ -69,8 +69,15 @@ void printAllCities(const Graph& graph) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc < 2) return 0;
     Graph g;
     InputHandler::loadFromFile(g);
-    printAllCities(g);
+
+    int scenario = std::stoi(argv[1]);
+    switch (scenario) {
+        case 1:
+            printAllCities(g);
+            break;
+        }
 }
