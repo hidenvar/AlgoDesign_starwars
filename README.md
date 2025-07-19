@@ -15,5 +15,5 @@
 
 ## Scenario 1
 
-- [ ] Create custom sort to sort by spy counts
+- [X] Create custom sort to sort by spy counts
 - [ ] Do most damage with the missiles
