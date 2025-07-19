@@ -116,13 +116,6 @@ void Scenario1::buildBaseToPathsMap() {
     // todo: complete this sort funtion write custom sort funtion to sort by spycount
     sort(baseToPathsMap[path.base].begin(), baseToPathsMap[path.base].end(), compareSpyCount);
   }
-  for (const auto& path : paths) {
-    for (const auto& v : baseToPathsMap[path.base]) {
-      std::cout << v.spyCount << ' ';
-    }
-    std::cout << '\n';
-  }
-
 }
 
 const std::vector<Scenario1::PathInfo>& Scenario1::getPathsFromBase(Graph::VertexDescriptor base) const {
