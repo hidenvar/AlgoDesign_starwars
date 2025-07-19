@@ -12,3 +12,8 @@
     - [X] Implement general map via 'City' class
   - [X] Implement 'Missle' class
     - [X] Implement diffrent missles via 'Missle' class
+
+## Scenario 1
+
+- [ ] Create custom sort to sort by spy counts
+- [ ] Do most damage with the missiles
