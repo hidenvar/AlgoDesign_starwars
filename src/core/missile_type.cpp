@@ -19,3 +19,23 @@ std::istream& operator>>(std::istream& is, MissileType& type) {
     }
     return is;
 }
+
+std::ostream& operator<<(std::ostream& os, const MissileType& type) {
+    const char* str = nullptr;
+    
+    switch (type) {
+        case MissileType::A1: str = "A1"; break;
+        case MissileType::A2: str = "A2"; break;
+        case MissileType::A3: str = "A3"; break;
+        case MissileType::B1: str = "B1"; break;
+        case MissileType::B2: str = "B2"; break;
+        case MissileType::C1: str = "C1"; break;
+        case MissileType::C2: str = "C2"; break;
+        case MissileType::D1: str = "D1"; break;
+        default:
+            os.setstate(std::ios::failbit);
+            return os;
+    }
+    
+    return os << str;
+}

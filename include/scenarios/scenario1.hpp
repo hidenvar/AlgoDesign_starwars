@@ -20,6 +20,7 @@ class Scenario1 : public Scenario{
     const std::vector<Graph::VertexDescriptor> getTargetVertices() const;
     void buildBaseToPathsMap();
     const std::vector<PathInfo>& getPathsFromBase(Graph::VertexDescriptor base) const;
+    const void attack();
 
     private:
     std::vector<Graph::VertexDescriptor> baseVertices;

@@ -2,6 +2,7 @@
 #include <queue>
 #include <boost/graph/adjacency_list.hpp>
 #include<iostream>
+#include"base_city.hpp"
 
 Scenario1::Scenario1(Graph& g) : Scenario(g) {}
 
@@ -123,10 +124,52 @@ const std::vector<Scenario1::PathInfo>& Scenario1::getPathsFromBase(Graph::Verte
   return (it != baseToPathsMap.end()) ? it->second : empty;
 }
 
+const void Scenario1::attack() {
+  int totalDamage = 0;
+
+  auto cities = Scenario1::mapInformation.getCitiesGraph();
+  for (const auto base : baseVertices) {
+    auto cityPtr = cities[base];
+    auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(cityPtr);
+    const auto missiles = baseCityPtr->getMissiles();
+    auto paths = Scenario1::baseToPathsMap[base];
+    if (paths.empty()) {
+      std::cout << "base " << baseCityPtr->getName()
+                << " cannot attack at all\n";
+    } else {
+      for (auto missile : missiles) {
+        auto stealth = missile.first.getStealth();
+        if (paths[0].spyCount < stealth) {
+          // found safe path: shoot and damage += missile damge * missile count
+          // print path
+          std::cout << "shoot " << missile.second << " "
+                    << missile.first.getType()
+                    << " missiles using this safe path: \n";
+          for (auto x : paths[0].cities) std::cout << x << " ";
+          std::cout << "\n";
+          auto thisDamage = (missile.first.getDestruction() * missile.second);
+          std::cout << "damage of this attach: " << thisDamage << "\n";
+          totalDamage += thisDamage;
+        } else {
+          std::cout << "base " << baseCityPtr->getName()
+                    << " has no safe path...";
+          // todo: there is no safe path, rapid fire on a common target
+          // but how?
+        }
+      }
+    }
+  }
+  std::cout << "\n"
+   << "************"
+   << "\n"
+   << "total damamge: " << totalDamage;
+}
+
 void Scenario1::solve() {
     initialize();
     findPaths();
     buildBaseToPathsMap();
+    attack();
 }
 
 const std::vector<Scenario1::PathInfo>& Scenario1::getPaths() const {return paths;}
