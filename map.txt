@@ -1,12 +1,5 @@
-Zarnovia CountryA 10 20 base 0 A2 10 D1 2
-Eldorath CountryB 11 21 target 1 10
-Valkur CountryA 12 22 normal 0
-Merithal CountryA 13 23 normal 1
-Tarnhelm CountryA 14 24 normal 0
-Xenvar CountryA 15 25 normal 0
-Bravonis CountryA 16 26 base 0 B2 12 C1 10 C2 5
-Thandor CountryA 17 27 normal 0
-
-Zarnovia Valkur
-Valkur Merithal
-Merithal Tarnhelm
+city1 country_a 0 0 BASE 0 2 A1 2 A2 3
+city2 country_a 200 200 NORMAL 0
+city3 country_b 100 100 TARGET 1 60
+city4 country_b 500 500 TARGET 1 50
+city5 country_a -400 -400 BASE 0 2 A1 2 A2 3

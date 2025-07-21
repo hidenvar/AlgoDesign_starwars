@@ -77,15 +77,16 @@ int main() {
     Scenario1 s(g);
     s.solve();
     auto bases = s.getBaseVertices();
+    auto cities = g.getCitiesGraph();
 
     // todo : we have cities vertices here, we can update to see names instead of vertices;
     // to update to name, we should store names inside vectors, do some changes to find path function to do this.
     for (auto b : bases){
         auto paths = s.getPathsFromBase(b);
-        std::cout << "base: " << b << '\n';
+        std::cout << "base: " << cities[b]->getName() << '\n';
         if (paths.empty()) std:: cout << "no path was found form this base\n";
         for (auto p : paths){
-            std::cout << "path from " << p.base << " to " << p.target << "\n";
+            std::cout << "path from " << cities[p.base]->getName() << " to " << cities[p.target]->getName() << "\n";
             for (auto x : p.cities) std::cout << x << " ";
             std::cout << '\n';
         }

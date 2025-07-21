@@ -113,7 +113,6 @@ void Scenario1::buildBaseToPathsMap() {
   auto compareSpyCount = [](const PathInfo& a, const PathInfo& b) {return a.spyCount < b.spyCount;};
   for (const auto& path : paths) {
     baseToPathsMap[path.base].push_back(path);
-    // todo: complete this sort funtion write custom sort funtion to sort by spycount
     sort(baseToPathsMap[path.base].begin(), baseToPathsMap[path.base].end(), compareSpyCount);
   }
 }
