@@ -8,4 +8,4 @@ class Scenario2 : public Scenario {
         Scenario2(Graph& g);
         void initialize() override;
         void solve() override;
-}
+};
