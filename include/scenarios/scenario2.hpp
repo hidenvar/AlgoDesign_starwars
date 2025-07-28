@@ -21,5 +21,6 @@ class Scenario2 : public Scenario {
 
         std::vector<Graph::VertexDescriptor> baseVertices;
         std::vector<Graph::VertexDescriptor> targetVertices;
+        std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>> baseToPathsMap;
         std::vector<PathInfo> paths; 
 };
