@@ -75,7 +75,7 @@ void Scenario2::findPaths() {
                 int spyCount = 0;
                 double totalDistance = 0.0;
                 
-                for (int i{}; i < currentPath.size(); ++i) {
+                for (size_t i{}; i < currentPath.size(); ++i) {
                     const auto& city = citiesGraph[currentPath[i]];
                     pathInfo.cities.push_back(city->getName());
                     if (city->hasSpy()) spyCount++;
