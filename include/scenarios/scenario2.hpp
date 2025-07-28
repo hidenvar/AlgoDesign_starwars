@@ -19,7 +19,8 @@ class Scenario2 : public Scenario {
       };
         void findPaths();
         void buildBaseToPathsMap();
-
+        void attack();
+        
         std::vector<Graph::VertexDescriptor> baseVertices;
         std::vector<Graph::VertexDescriptor> targetVertices;
         std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>> baseToPathsMap;

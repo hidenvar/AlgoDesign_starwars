@@ -122,8 +122,55 @@ void Scenario2::buildBaseToPathsMap() {
     }
 }
 
+void Scenario2::attack() {
+    int totalDamage = 0;
+    const auto& citiesGraph = Scenario::mapInformation.getCitiesGraph();
+
+    for (const auto& base : baseVertices) {
+        const auto& cityPtr = citiesGraph[base];
+        auto baseCity = std::dynamic_pointer_cast<BaseCity>(cityPtr);
+        if (!baseCity) continue;
+
+        const auto& missiles = baseCity->getMissiles();
+        const auto& paths = baseToPathsMap[base];
+
+        if (paths.empty()) {
+            std::cout << "Base " << baseCity->getName() << " cannot attack at all\n";
+            continue;
+        }
+
+        const auto& bestPath = paths.front();
+
+        for (const auto& [missile, count] : missiles) {
+            const auto& stealth = missile.getStealth();
+
+            if (bestPath.spyCount < stealth && missile.getOveralDistance() >= bestPath.distance) {
+                std::cout << "Shoot " << count << " " << missile.getType()
+                          << " missiles using this safe path:\n";
+                
+                for (const auto& cityName : bestPath.cities)
+                    std::cout << cityName << " ";
+                std::cout << "\n";
+
+                int damage = missile.getDestruction() * count;
+                std::cout << "Damage of this attack: " << damage << "\n";
+                totalDamage += damage;
+            } else {
+                std::cout << "Base " << baseCity->getName() << " has no safe path for "
+                          << missile.getType() << " missiles...\n";
+            }
+        }
+    }
+    
+    std::cout << "\n"
+   << "************"
+   << "\n"
+   << "total damamge: " << totalDamage;
+}
+
 void Scenario2::solve() {
     initialize();
     findPaths();
     buildBaseToPathsMap();
+    attack();
 }
