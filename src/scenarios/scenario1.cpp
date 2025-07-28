@@ -3,6 +3,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include<iostream>
 #include"base_city.hpp"
+#include"target_city.hpp"
+#include <sstream>
 
 Scenario1::Scenario1(Graph& g) : Scenario(g) {}
 
@@ -126,44 +128,189 @@ const std::vector<Scenario1::PathInfo>& Scenario1::getPathsFromBase(Graph::Verte
 
 const void Scenario1::attack() {
   int totalDamage = 0;
-
   auto cities = Scenario1::mapInformation.getCitiesGraph();
+  auto nameToDesc = mapInformation.getCitiesVertex();
+  
+  struct FallbackBase {
+    Graph::VertexDescriptor base;
+    std::string baseName;
+    std::unordered_map<std::string, int> missileInventory;
+    int damagePerMissile;
+    std::vector<PathInfo> paths;
+  };
+
+  std::vector<FallbackBase> fallbackBases;
+
+  // safe attacks
   for (const auto base : baseVertices) {
     auto cityPtr = cities[base];
     auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(cityPtr);
-    const auto missiles = baseCityPtr->getMissiles();
-    auto paths = Scenario1::baseToPathsMap[base];
-    if (paths.empty()) {
-      std::cout << "base " << baseCityPtr->getName()
-                << " cannot attack at all\n";
-    } else {
-      for (auto missile : missiles) {
-        auto stealth = missile.first.getStealth();
-        if (paths[0].spyCount < stealth) {
-          // found safe path: shoot and damage += missile damge * missile count
-          // print path
-          std::cout << "shoot " << missile.second << " "
-                    << missile.first.getType()
-                    << " missiles using this safe path: \n";
-          for (auto x : paths[0].cities) std::cout << x << " ";
-          std::cout << "\n";
-          auto thisDamage = (missile.first.getDestruction() * missile.second);
-          std::cout << "damage of this attach: " << thisDamage << "\n";
-          totalDamage += thisDamage;
-        } else {
-          std::cout << "base " << baseCityPtr->getName()
-                    << " has no safe path...";
-          // todo: there is no safe path, rapid fire on a common target
-          // but how?
+    const auto& missiles = baseCityPtr->getMissiles();
+    const auto& paths = getPathsFromBase(base);
+
+    bool hasSafe = false;
+    for (const auto& m : missiles) {
+      if (!paths.empty() && paths[0].spyCount < m.first.getStealth()) {
+        hasSafe = true;
+
+        std::cout << "Base " << baseCityPtr->getName() << " fires "
+                  << m.second << " * " << m.first.getType()
+                  << " via safe path: ";
+        for (const auto& name : paths[0].cities) std::cout << name << " ";
+        std::cout << "\n";
+
+        int dmg = m.second * m.first.getDestruction();
+        totalDamage += dmg;
+        std::cout << "Damage: " << dmg << "\n\n";
+      }
+    }
+
+    if (!hasSafe && !paths.empty()) {
+      FallbackBase fb;
+      fb.base = base;
+      fb.baseName = baseCityPtr->getName();
+      fb.paths = paths;
+
+      for (const auto& m : missiles) {
+        // convert MissileType to string
+        std::ostringstream oss;
+        oss << m.first.getType();
+        std::string typeStr = oss.str();
+        
+        fb.missileInventory[typeStr] += m.second;
+        fb.damagePerMissile = m.first.getDestruction();
+      }
+
+      fallbackBases.push_back(fb);
+    }
+  }
+
+  // fallback attacks
+  while (true) {
+    // check if any missiles remain
+    bool missilesLeft = false;
+    for (const auto& fb : fallbackBases) {
+      for (const auto& [_, count] : fb.missileInventory) {
+        if (count > 0) {
+          missilesLeft = true;
+          break;
+        }
+      }
+      if (missilesLeft) break; // break the search (we still have missiles)
+    }
+    if (!missilesLeft) break; // break the attack(end of attack)
+
+    // find best target
+    std::unordered_map<std::string, int> totalMissilesToTarget;
+    std::unordered_map<std::string, int> damagePerMissile;
+    std::unordered_map<std::string, std::vector<int>> baseIndexes;
+
+    for (int i = 0; i < fallbackBases.size(); ++i) {
+      const auto& fb = fallbackBases[i];
+      for (const auto& path : fb.paths) {
+        std::string targetName = cities[path.target]->getName();
+
+        // sum up all missiles
+        int count = 0;
+        for (const auto& [type, qty] : fb.missileInventory) {
+          count += qty;
+          damagePerMissile[targetName] = fb.damagePerMissile;
+        }
+
+        if (count > 0) {
+          totalMissilesToTarget[targetName] += count;
+          baseIndexes[targetName].push_back(i);
         }
       }
     }
+
+    if (totalMissilesToTarget.empty()) break;
+
+    // Choose target with max bypassed damage
+    std::string bestTarget;
+    int bestTargetDefense = 0;
+    int maxBypassedDamage = -1;
+
+    for (const auto& [targetName, count] : totalMissilesToTarget) {
+      // find vertex 
+      auto it = nameToDesc.find(targetName);
+      if (it == nameToDesc.end()) continue;
+      
+      Graph::VertexDescriptor tgtDesc = it->second;
+      auto tgtCity = std::dynamic_pointer_cast<TargetCity>(cities[tgtDesc]);
+      int defense = tgtCity->getDefenseLevel();
+      int bypassed = std::max(0, count - defense);
+      int damage = bypassed * damagePerMissile[targetName];
+
+      if (damage > maxBypassedDamage) {
+        maxBypassedDamage = damage;
+        bestTarget = targetName;
+        bestTargetDefense = defense;
+      }
+    }
+
+    std::cout << "\n*** Rapid-Fire on \"" << bestTarget << "\" ***\n";
+    std::cout << "defense: " << bestTargetDefense << "\n";
+
+    // fire all missiles from all bases to this target
+    int totalFired = 0, totalBlocked = 0;
+    std::unordered_map<std::string, int> blockedByType;
+
+    for (int idx : baseIndexes[bestTarget]) {
+      auto& fb = fallbackBases[idx];
+
+      // find a path to this target
+      PathInfo* pathToUse = nullptr;
+      for (auto& p : fb.paths) {
+        if (cities[p.target]->getName() == bestTarget) {
+          pathToUse = &p;
+          break;
+        }
+      }
+
+      // this city is not able to help us in this specific attack phase
+      if (!pathToUse) continue;
+
+      int baseFired = 0;
+
+      std::cout << "Base " << fb.baseName << " -> ";
+      for (const auto& city : pathToUse->cities)
+        std::cout << city << " ";
+      std::cout << "\n";
+
+      for (auto& [type, count] : fb.missileInventory) {
+        if (count == 0) continue;
+        std::cout << "  - " << count << " x " << type << "\n";
+
+        for (int i = 0; i < count; ++i) {
+          if (totalBlocked < bestTargetDefense) {
+            totalBlocked++;
+            blockedByType[type]++;
+          } else {
+            totalDamage += fb.damagePerMissile;
+          }
+          totalFired++;
+        }
+
+        baseFired += count;
+        count = 0;
+      }
+
+      if (baseFired == 0)
+        std::cout << "  (no missiles left)\n";
+    }
+
+    std::cout << "total Missiles Fired: " << totalFired << "\n";
+    std::cout << "blocked: " << totalBlocked << "\n";
+    std::cout << "bypassed: " << totalFired - totalBlocked << "\n";
+    std::cout << "blocked summary:\n";
+    for (const auto& [type, cnt] : blockedByType)
+      std::cout << "  - " << type << ": " << cnt << "\n";
   }
-  std::cout << "\n"
-   << "************"
-   << "\n"
-   << "total damamge: " << totalDamage;
+
+  std::cout << "\n************\nTotal Damage: " << totalDamage << "\n";
 }
+
 
 void Scenario1::solve() {
     initialize();
