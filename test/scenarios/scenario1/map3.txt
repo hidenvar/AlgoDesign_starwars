@@ -1,9 +1,21 @@
-city1 country_a 0 0 BASE 0 1 D1 2
-city2 country_a 0 0 BASE 100 1 D1 2
-city3 country_b 200 300 TARGET 1 10
-city4 country_b -200 -300 TARGET 100 10
-city5 country_b -200 -300 TARGET 100 3
+city1 country_a 100 0 BASE 1 1 D1 2
+city2 country_a 200 0 BASE 1 1 D1 2
+city3 country_a -900 0 BASE 1 1 D1 2
+city4 country_a -1000 0 BASE 1 1 D1 2
+city5 country_a 150 -450 BASE 1 1 D1 2
+city6 country_a -950 -450 BASE 1 1 D1 2
+city7 country_b  150 100 TARGET 1 1
+city8 country_b -950 100 TARGET 1 3
+city9 country_b -950 -500 TARGET 0 5
 
+version 2 :
 
-//todo: write best map for this 
-// multiple cites in the way, send the missile step by step
+city1 country_a 100 0 BASE 1 1 D1 2
+city2 country_a 200 0 BASE 1 1 D1 2
+city3 country_a -900 0 BASE 1 1 D1 2
+city4 country_a -1000 0 BASE 1 1 D1 2
+city5 country_a 150 -450 BASE 1 1 D1 2
+city6 country_a -950 -450 BASE 1 1 D1 2
+city7 country_b  150 100 TARGET 1 1
+city8 country_b -950 100 TARGET 1 3
+city9 country_b -950 -500 TARGET 0 1
