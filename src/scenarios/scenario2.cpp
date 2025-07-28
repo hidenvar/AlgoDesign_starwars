@@ -107,7 +107,23 @@ void Scenario2::findPaths() {
     }
 }
 
+void Scenario2::buildBaseToPathsMap() {
+    baseToPathsMap.clear();
+    auto compare = [](const PathInfo& a, const PathInfo& b) {
+        return std::tie(a.spyCount, a.distance) < std::tie(b.spyCount, b.distance);
+    };
+
+    for (const auto& path : paths) {
+        baseToPathsMap[path.base].push_back(path);
+    }
+
+    for (auto& [base, vec] : baseToPathsMap) {
+        sort(vec.begin(), vec.end(), compare);
+    }
+}
+
 void Scenario2::solve() {
     initialize();
     findPaths();
+    buildBaseToPathsMap();
 }

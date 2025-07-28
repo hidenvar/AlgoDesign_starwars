@@ -18,6 +18,7 @@ class Scenario2 : public Scenario {
         double distance;
       };
         void findPaths();
+        void buildBaseToPathsMap();
 
         std::vector<Graph::VertexDescriptor> baseVertices;
         std::vector<Graph::VertexDescriptor> targetVertices;
