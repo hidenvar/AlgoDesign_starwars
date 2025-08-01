@@ -10,7 +10,7 @@ INC_CORE = include/core
 INC_SCENARIOS = include/scenarios
 BUILD_DIR = build
 BIN_DIR = bin
-TEST_DIR = test/scenarios
+TEST_DIR = test
 LIB_DIR = lib
 
 # Core object files
@@ -47,7 +47,22 @@ clean:
 
 # Run
 run: all
-	./$(BIN_DIR)/StarWars
-	
+	@if [ "$(filter-out $@,$(MAKECMDGOALS))" = "" ]; then \
+		echo "▶ Running interactively..."; \
+		./$(BIN_DIR)/StarWars; \
+	else \
+		SCENARIO=$(filter-out $@,$(MAKECMDGOALS)); \
+		if [ ! -f $(TEST_DIR)/scenario$$SCENARIO/testcase.txt ]; then \
+			echo "❌ Error: test/scenario$$SCENARIO/testcase.txt not found!"; \
+			exit 1; \
+		fi; \
+		echo "▶ Running scenario $$SCENARIO..."; \
+		./$(BIN_DIR)/StarWars $$SCENARIO < $(TEST_DIR)/scenario$$SCENARIO/testcase.txt; \
+	fi
+
+# Prevent Make from treating numbers as targets
+%:
+	@:
+
 #PHONY
 .PHONY: all clean run
