@@ -21,6 +21,7 @@ private:
         double maxGap;
     };
 
+    std::unordered_map<int, Graph> missileToGraphs;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
 
