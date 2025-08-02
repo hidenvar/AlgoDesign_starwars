@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scenario.hpp"
+#include "graph.hpp"
 
 class Scenario4 : public Scenario
 {
@@ -19,4 +20,8 @@ private:
         double totalDistance;
         double maxGap;
     };
+
+    std::vector<Graph::VertexDescriptor> baseVertices;
+    std::vector<Graph::VertexDescriptor> targetVertices;
+
 };
