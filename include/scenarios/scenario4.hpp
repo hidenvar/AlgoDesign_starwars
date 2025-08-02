@@ -5,9 +5,18 @@
 class Scenario4 : public Scenario
 {
 public:
-    Scenario4(Graph& g);
+    Scenario4(Graph &g);
     void initialize() override;
     void solve() override;
-private:
 
+private:
+    struct PathInfo
+    {
+        Graph::VertexDescriptor base;
+        Graph::VertexDescriptor target;
+        std::vector<std::string> cities;
+        int spyCount;
+        double totalDistance;
+        double maxGap;
+    };
 };
