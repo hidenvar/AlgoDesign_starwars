@@ -9,6 +9,7 @@ public:
     Scenario4(Graph &g);
     void initialize() override;
     void solve() override;
+    void findPaths();
 
 private:
     struct PathInfo
@@ -21,8 +22,7 @@ private:
         double maxGap;
     };
 
-    std::unordered_map<int, Graph> missileToGraphs;
+    std::unordered_map<int, std::pair<Graph, std::vector<PathInfo>>> missileToGraphs;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
-
 };
