@@ -100,6 +100,7 @@ void Scenario4::findPaths()
                     pathInfo.target = currentVertex;
                     int spyCount = 0;
                     double totalDistance = 0.0;
+                    double maxGap = INT_MIN;
 
                     for (size_t i{}; i < currentPath.size(); ++i)
                     {
@@ -111,13 +112,17 @@ void Scenario4::findPaths()
                         if (i > 0)
                         {
                             const auto &prevCity = citiesGraph[currentPath[i - 1]];
-                            totalDistance += val.first.calculateDistance(*prevCity, *city);
+                            auto td = val.first.calculateDistance(*prevCity, *city);
+                            maxGap = std::max(maxGap, td);
+                            totalDistance += td;
                         }
                     }
 
                     pathInfo.totalDistance = totalDistance;
                     pathInfo.spyCount = spyCount;
+                    pathInfo.maxGap = maxGap;
                     val.second.push_back(pathInfo);
+                    
                 }
 
                 auto neighbors = boost::adjacent_vertices(currentVertex, citiesGraph);
