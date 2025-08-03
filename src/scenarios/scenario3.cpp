@@ -2,6 +2,12 @@
 
 #include <queue>
 
+void Scenario3::solve(){
+    initialize();
+    findPaths();
+    buildMissilePathMap();
+}
+
 void Scenario3::initialize() {
   // uncontrolledDistance is set to max between b1, b2, c1, c2
   int uncontrolledDistance = 900;
