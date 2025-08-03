@@ -1,12 +1,12 @@
 #pragma once
-#include "scenario.hpp"
 #include "graph.hpp"
 #include "inventory.hpp"
+#include "scenario.hpp"
 
 class Scenario3 : public Scenario {
  public:
   Scenario3();
-  
+  void initialize();
   struct PathInfo {
     Graph::VertexDescriptor base;
     Graph::VertexDescriptor target;
