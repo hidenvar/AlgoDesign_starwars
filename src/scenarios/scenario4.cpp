@@ -3,6 +3,7 @@
 #include "base_city.hpp"
 #include <iostream>
 #include <queue>
+#include <iomanip> // for std::setprecision
 
 Scenario4::Scenario4(Graph &g) : Scenario(g) {}
 
@@ -122,7 +123,6 @@ void Scenario4::findPaths()
                     pathInfo.spyCount = spyCount;
                     pathInfo.maxGap = maxGap;
                     val.second.push_back(pathInfo);
-                    
                 }
 
                 auto neighbors = boost::adjacent_vertices(currentVertex, citiesGraph);
@@ -143,8 +143,66 @@ void Scenario4::findPaths()
     }
 }
 
+void Scenario4::buildPaths()
+{
+    auto compare = [](const PathInfo &a, const PathInfo &b)
+    {
+        return std::tie(a.spyCount, a.maxGap, a.totalDistance) < std::tie(b.spyCount, b.maxGap, b.totalDistance);
+    };
+
+    for (const auto &[missileUn, graphPair] : missileToGraphs)
+    {
+        missilePathsByBase[missileUn].clear();
+
+        for (const auto &path : graphPair.second)
+        {
+            missilePathsByBase[missileUn][path.base].push_back(path);
+        }
+
+        for (auto &[base, paths] : missilePathsByBase[missileUn])
+        {
+            sort(paths.begin(), paths.end(), compare);
+        }
+    }
+}
+
 void Scenario4::solve()
 {
     initialize();
     findPaths();
+    buildPaths();
+    printPathInfo();
+}
+
+
+
+void Scenario4::printPathInfo() const
+{
+    std::cout << "=== Missile Path Info ===\n";
+
+    for (const auto &[missileUn, basePaths] : missilePathsByBase)
+    {
+        std::cout << "Missile Uncontrolled Distance: " << missileUn << "\n";
+
+        for (const auto &[base, paths] : basePaths)
+        {
+            std::cout << "  Base: " << Scenario::mapInformation.getCitiesGraph()[base]->getName() << "\n";
+
+            for (const auto &path : paths)
+            {
+                std::cout << "    Path: ";
+                for (const auto &cityName : path.cities)
+                {
+                    std::cout << cityName << " -> ";
+                }
+                std::cout << "END\n";
+
+                std::cout << "      Spy Count: " << path.spyCount
+                          << ", Max Gap: " << std::fixed << std::setprecision(2) << path.maxGap
+                          << ", Total Distance: " << path.totalDistance << "\n";
+            }
+        }
+
+        std::cout << "-------------------------\n";
+    }
 }

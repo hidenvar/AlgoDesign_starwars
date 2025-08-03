@@ -10,6 +10,8 @@ public:
     void initialize() override;
     void solve() override;
     void findPaths();
+    void buildPaths();
+    void printPathInfo() const;
 
 private:
     struct PathInfo
@@ -22,6 +24,7 @@ private:
         double maxGap;
     };
 
+    std::unordered_map<int, std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>>> missilePathsByBase;
     std::unordered_map<int, std::pair<Graph, std::vector<PathInfo>>> missileToGraphs;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
