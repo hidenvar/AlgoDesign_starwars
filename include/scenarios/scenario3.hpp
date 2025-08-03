@@ -14,7 +14,8 @@ class Scenario3 : public Scenario {
     Graph::VertexDescriptor target;
     std::vector<std::string> cities;
     int spyCount;
-    int max_gap;
+    double distance;
+    double max_gap;
   };
 
  private:
@@ -22,5 +23,9 @@ class Scenario3 : public Scenario {
   std::vector<PathInfo> paths; 
   std::vector<Graph::VertexDescriptor> baseVertices;
   std::vector<Graph::VertexDescriptor> targetVertices;
+
+  // map : "B1 safe" -> vector of specific paths. 
+  std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
+  void buildMissilePathMap();
 
 };

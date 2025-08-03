@@ -77,7 +77,8 @@ void Scenario3::findPaths() {
         pathInfo.base = base;
         pathInfo.target = currentVertex;
         int spyCount = 0;
-        int maxGap = 0;
+        double maxGap = 0.0;
+        double totalDistance = 0.0;
 
         const auto& weightMap = boost::get(boost::edge_weight, citiesGraph);
 
@@ -89,14 +90,18 @@ void Scenario3::findPaths() {
           }
 
           if (i > 0) {
+            const auto &prevCity = citiesGraph[currentPath[i - 1]];
+            totalDistance += Scenario::mapInformation.calculateDistance(*prevCity, *city);
+
             auto [e, exists] =
                 boost::edge(currentPath[i - 1], currentPath[i], citiesGraph);
             if (exists) {
-              maxGap = std::max(maxGap, static_cast<int>(weightMap[e]));
+              maxGap = std::max(maxGap, (weightMap[e]));
             }
           }
         }
 
+        pathInfo.distance = totalDistance;
         pathInfo.spyCount = spyCount;
         pathInfo.max_gap = maxGap;
         paths.push_back(pathInfo);
@@ -116,4 +121,45 @@ void Scenario3::findPaths() {
       }
     }
   }
+}
+
+
+void Scenario3::buildMissilePathMap(){
+    for (const auto& path : paths) {
+        // --- B1: od = 5000, ud = 500, st = 2
+        if (path.distance < 5000 && path.max_gap < 500) {
+            if (path.spyCount < 2) {
+                missilePathMap["B1 safe"].push_back(path);
+            } else {
+                missilePathMap["B1 revealed"].push_back(path);
+            }
+        }
+
+        // --- B2: od = 5000, ud = 500, st = 0
+        if (path.distance < 5000 && path.max_gap < 500) {
+            if (path.spyCount < 0) {
+                missilePathMap["B2 safe"].push_back(path);
+            } else {
+                missilePathMap["B2 revealed"].push_back(path);
+            }
+        }
+
+        // --- C1: od = 3000, ud = 700, st = 2
+        if (path.distance < 3000 && path.max_gap < 700) {
+            if (path.spyCount < 2) {
+                missilePathMap["C1 safe"].push_back(path);
+            } else {
+                missilePathMap["C1 revealed"].push_back(path);
+            }
+        }
+
+        // --- C2: od = 2900, ud = 900, st = 1
+        if (path.distance < 2900 && path.max_gap < 900) {
+            if (path.spyCount < 1) {
+                missilePathMap["C2 safe"].push_back(path);
+            } else {
+                missilePathMap["C2 revealed"].push_back(path);
+            }
+        }
+    }
 }
