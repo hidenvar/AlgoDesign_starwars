@@ -7,6 +7,9 @@ void Scenario3::solve(){
     findPaths();
     buildMissilePathMap();
 }
+Scenario3::Scenario3(Graph g, Inventory i): Scenario(g){
+    inventory = i;
+}
 
 void Scenario3::initialize() {
   // uncontrolledDistance is set to max between b1, b2, c1, c2
@@ -169,3 +172,6 @@ void Scenario3::buildMissilePathMap(){
         }
     }
 }
+
+
+  std::unordered_map<std::string, std::vector<Scenario3::PathInfo>> Scenario3::getMissilePathMap(){return missilePathMap;}

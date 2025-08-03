@@ -5,7 +5,7 @@
 
 class Scenario3 : public Scenario {
  public:
-  Scenario3();
+  Scenario3(Graph, Inventory);
   void initialize();
   void findPaths();
   void solve();
@@ -18,6 +18,7 @@ class Scenario3 : public Scenario {
     double distance;
     double max_gap;
   };
+  std::unordered_map<std::string, std::vector<PathInfo>> getMissilePathMap();
 
  private:
   Inventory inventory;
