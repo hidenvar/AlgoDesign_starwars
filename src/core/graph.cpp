@@ -36,6 +36,27 @@ double Graph::calculateDistance(const City& a, const City& b) const {
     return std::sqrt(x_diff*x_diff + y_diff*y_diff);
 }
 
+void Graph::setDistanceBetweenCities(const std::string& a, const std::string& b, double distance) {
+    auto it1 = cityNameToVertex.find(a);
+    auto it2 = cityNameToVertex.find(b);
+
+    if (it1 == cityNameToVertex.end() || it2 == cityNameToVertex.end()) {
+        throw std::runtime_error("One or both city names not found.");
+    }
+
+    VertexDescriptor v1 = it1->second;
+    VertexDescriptor v2 = it2->second;
+
+    auto [edge, exists] = boost::edge(v1, v2, citiesGraph);
+    if (!exists) {
+        throw std::runtime_error("cities are not connected.");
+    } else {
+        auto weightMap = boost::get(boost::edge_weight, citiesGraph);
+        weightMap[edge] = distance;
+    }
+}
+
+
 Graph::GraphType Graph::getCitiesGraph() const { return citiesGraph; }
 
 std::map<std::string, Graph::VertexDescriptor> Graph::getCitiesVertex() const { return cityNameToVertex; }
