@@ -7,6 +7,8 @@ class Scenario3 : public Scenario {
  public:
   Scenario3();
   void initialize();
+  void findPaths();
+
   struct PathInfo {
     Graph::VertexDescriptor base;
     Graph::VertexDescriptor target;
@@ -17,4 +19,8 @@ class Scenario3 : public Scenario {
 
  private:
   Inventory inventory;
+  std::vector<PathInfo> paths; 
+  std::vector<Graph::VertexDescriptor> baseVertices;
+  std::vector<Graph::VertexDescriptor> targetVertices;
+
 };
