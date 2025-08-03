@@ -11,6 +11,9 @@ class BaseCity : public City {
              double lon, CityType type, bool sp, std::vector<std::pair<Missile, int>> mc);
     
     std::vector<std::pair<Missile, int>> getMissiles() const;
+    void setCapacity(int cap);
+    int getCapacity();
   private:
     std::vector<std::pair<Missile, int>> missileInfo;
+    int capacity;
 };

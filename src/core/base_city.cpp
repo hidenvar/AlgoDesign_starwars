@@ -6,3 +6,10 @@ BaseCity::BaseCity(const std::string& name, const std::string& country, double l
     
     
 std::vector<std::pair<Missile, int>> BaseCity::getMissiles() const { return missileInfo; }
+
+void BaseCity::setCapacity(int cap){
+        capacity = cap;
+}
+int BaseCity::getCapacity(){
+        return capacity;
+}
