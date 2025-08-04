@@ -1,6 +1,9 @@
 #include "scenario3.hpp"
 
 #include <queue>
+#include<iostream>
+#include "missile_factory.hpp"
+#include "base_city.hpp"
 
 void Scenario3::solve(){
     initialize();
@@ -174,4 +177,68 @@ void Scenario3::buildMissilePathMap(){
 }
 
 
-  std::unordered_map<std::string, std::vector<Scenario3::PathInfo>> Scenario3::getMissilePathMap(){return missilePathMap;}
+std::unordered_map<std::string, std::vector<Scenario3::PathInfo>> Scenario3::getMissilePathMap(){return missilePathMap;}
+
+void Scenario3::attack() {
+    int totalDamage = 0;
+    // missile types are c and b
+    // we have limited capacity in each base
+    // first we shoot highest damage missile through a safe path
+    // missile damages : B1 90 / B2 300 / C1 110 / C2 10
+    // missile priority : B2, C1, B1, C2
+    std::cout << "**** Starting safe attack phase *****\n";
+    auto& graph = mapInformation.getCitiesGraphRef();    
+    std::vector<std::string> missilePriority = {"B2", "C1", "B1", "C2"};
+
+    for (const auto& mtypeStr : missilePriority) {
+        int& count = [&]() -> int& {
+            if (mtypeStr == "B2") return inventory.B2;
+            if (mtypeStr == "C1") return inventory.C1;
+            if (mtypeStr == "B1") return inventory.B1;
+            return inventory.C2;
+        }();
+
+        if (count <= 0) continue;
+
+        auto mt = getMissileType(mtypeStr);
+        auto missile = MissileFactory::getMissile(mt);
+        int damagePerMissile = missile.getDestruction();
+
+        for (auto& path : missilePathMap[mtypeStr + " safe"]) {
+            auto baseDesc = path.base;
+
+            auto it = std::find(baseVertices.begin(), baseVertices.end(), baseDesc);
+            if (it == baseVertices.end()) continue;
+
+            auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
+            if (!baseCityPtr) continue;
+
+            int baseCap = baseCityPtr->getCapacity();
+            if (baseCap == 0) {
+                baseVertices.erase(it);
+                continue;
+            }
+
+            int used = std::min(count, baseCap);
+            int pathDamage = damagePerMissile * used;
+            totalDamage += pathDamage;
+            count -= used;
+            baseCityPtr->setCapacity(baseCap - used);
+
+            std::cout << "Shot " << used << "x " << mtypeStr
+                      << " missiles via path: ";
+            for (const auto& cityName : path.cities) {
+                std::cout << cityName << " ";
+            }
+            std::cout << "| Damage: " << pathDamage << "\n";
+
+            if (baseCityPtr->getCapacity() == 0) {
+                baseVertices.erase(it);
+            }
+
+            if (count == 0) break;
+        }
+    }
+
+    std::cout << "Total Damage: " << totalDamage << "\n";
+}

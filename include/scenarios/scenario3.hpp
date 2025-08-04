@@ -9,6 +9,7 @@ class Scenario3 : public Scenario {
   void initialize();
   void findPaths();
   void solve();
+  void attack();
 
   struct PathInfo {
     Graph::VertexDescriptor base;
