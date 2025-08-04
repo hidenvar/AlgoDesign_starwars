@@ -39,3 +39,15 @@ std::ostream& operator<<(std::ostream& os, const MissileType& type) {
     
     return os << str;
 }
+
+MissileType getMissileType(const std::string& str) {
+    if      (str == "A1") return MissileType::A1;
+    else if (str == "A2") return MissileType::A2;
+    else if (str == "A3") return MissileType::A3;
+    else if (str == "B1") return MissileType::B1;
+    else if (str == "B2") return MissileType::B2;
+    else if (str == "C1") return MissileType::C1;
+    else if (str == "C2") return MissileType::C2;
+    else if (str == "D1") return MissileType::D1;
+    else throw std::invalid_argument("Invalid missile type: " + str);
+}
