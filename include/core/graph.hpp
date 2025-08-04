@@ -22,6 +22,7 @@ class Graph {
 
   void addCity(CityPtr city);
   GraphType getCitiesGraph() const;
+  GraphType& getCitiesGraphRef();
   std::map<std::string, VertexDescriptor> getCitiesVertex() const;
   void connectCities(std::string& a, std::string& b);
   double calculateDistance(const City& a, const City& b) const;

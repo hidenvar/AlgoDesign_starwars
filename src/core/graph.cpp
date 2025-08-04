@@ -58,5 +58,8 @@ void Graph::setDistanceBetweenCities(const std::string& a, const std::string& b,
 
 
 Graph::GraphType Graph::getCitiesGraph() const { return citiesGraph; }
+Graph::GraphType& Graph::getCitiesGraphRef() {
+    return citiesGraph;
+}
 
 std::map<std::string, Graph::VertexDescriptor> Graph::getCitiesVertex() const { return cityNameToVertex; }
