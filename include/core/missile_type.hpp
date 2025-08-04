@@ -13,3 +13,4 @@ enum class MissileType {
 
 std::istream& operator>>(std::istream& is, MissileType& type);
 std::ostream& operator<<(std::ostream& os, const MissileType& type);
+MissileType getMissileType(const std::string& str);
