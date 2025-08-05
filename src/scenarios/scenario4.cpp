@@ -184,31 +184,44 @@ void Scenario4::solve()
 
 void Scenario4::printPathInfo() const
 {
-    std::cout << "=== Missile Path Info ===\n";
+    std::cout << "=== Missile Path Info by Type ===\n";
 
-    for (const auto &[missileUn, basePaths] : missilePathsByBase)
+    // All expected missile path categories
+    const std::vector<std::string> expectedCategories = {
+        "A1 safe", "A1 revealed",
+        "A2 safe", "A2 revealed",
+        "A3 safe", "A3 revealed",
+        "B1 safe", "B1 revealed",
+        "B2 safe", "B2 revealed",
+        "C1 safe", "C1 revealed",
+        "C2 safe", "C2 revealed"
+    };
+
+    for (const auto &category : expectedCategories)
     {
-        std::cout << "Missile Uncontrolled Distance: " << missileUn << "\n";
+        std::cout << "Missile Type: " << category << "\n";
 
-        for (const auto &[base, paths] : basePaths)
+        auto it = missilePathMap.find(category);
+        if (it == missilePathMap.end() || it->second.empty())
         {
-            std::cout << "  Base: " << Scenario::mapInformation.getCitiesGraph()[base]->getName() << "\n";
-
-            for (const auto &path : paths)
+            std::cout << "  No paths available for this category.\n";
+        }
+        else
+        {
+            for (const auto &path : it->second)
             {
-                std::cout << "    Path: ";
+                std::cout << "  Path: ";
                 for (const auto &cityName : path.cities)
                 {
                     std::cout << cityName << " -> ";
                 }
                 std::cout << "END\n";
 
-                std::cout << "      Spy Count: " << path.spyCount
+                std::cout << "    Spy Count: " << path.spyCount
                           << ", Max Gap: " << std::fixed << std::setprecision(2) << path.maxGap
                           << ", Total Distance: " << path.totalDistance << "\n";
             }
         }
-
         std::cout << "-------------------------\n";
     }
 }
