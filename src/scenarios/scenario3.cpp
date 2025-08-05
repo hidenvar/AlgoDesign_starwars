@@ -277,190 +277,6 @@ void Scenario3::attack() {
   attackFallbackPhase();
 }
 
-
-void Scenario3::attackFallbackPhase() {
-  int totalDamage = 0;
-
-  auto& graph = mapInformation.getCitiesGraphRef();
-  auto cities = mapInformation.getCitiesVertex();
-
-  struct FallbackBase {
-    Graph::VertexDescriptor baseDesc;
-    std::string baseName;
-    std::string missileType;
-    int inventoryCount;
-    int damagePerMissile;
-    std::vector<PathInfo> paths;
-  };
-
-  // Build all base+missile type combinations with valid revealed paths
-  std::vector<FallbackBase> fallbackBases;
-  const std::vector<std::string> missileTypes = {"B2", "C1", "B1", "C2"};
-  for (const auto& mtypeStr : missileTypes) {
-    int inv = (mtypeStr == "B2"   ? inventory.B2
-               : mtypeStr == "C1" ? inventory.C1
-               : mtypeStr == "B1" ? inventory.B1
-                                  : inventory.C2);
-    if (inv <= 0) continue;
-
-    auto mt = getMissileType(mtypeStr);
-    auto missile = MissileFactory::getMissile(mt);
-    int dmg = missile.getDestruction();
-
-    auto keyIt = missilePathMap.find(mtypeStr + " revealed");
-    if (keyIt == missilePathMap.end()) continue;
-    auto& allPaths = keyIt->second;
-
-    for (auto baseDesc : baseVertices) {
-      std::vector<PathInfo> ps;
-      for (auto& p : allPaths) {
-        if (p.base == baseDesc) {
-          ps.push_back(p);
-        }
-      }
-      if (ps.empty()) continue;
-
-      auto ptr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
-      if (!ptr) continue;
-
-      fallbackBases.push_back(
-          {baseDesc, ptr->getName(), mtypeStr, inv, dmg, std::move(ps)});
-    }
-  }
-
-  // Rapid-fire loop
-  while (true) {
-    // Check if any missiles remain
-    bool missilesLeft = false;
-    for (auto& fb : fallbackBases) {
-      if (fb.inventoryCount > 0) {
-        missilesLeft = true;
-        break;
-      }
-    }
-    if (!missilesLeft) break;
-
-    // Step 1: Accumulate potential bypassed damage per target
-    struct Cand {
-      int totalDamage = 0;
-      std::vector<int> srcIndices;
-    };
-    std::unordered_map<std::string, Cand> candidates;
-
-    for (int i = 0; i < (int)fallbackBases.size(); ++i) {
-      auto& fb = fallbackBases[i];
-      if (fb.inventoryCount == 0) continue;
-
-      for (auto& p : fb.paths) {
-        auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[p.base]);
-        int baseCap = basePtr ? basePtr->getCapacity() : 0;
-        if (baseCap <= 0) continue;
-
-        std::string tgtName = graph[p.target]->getName();
-        auto it = cities.find(tgtName);
-        if (it == cities.end()) continue;
-
-        auto tgtCity = std::dynamic_pointer_cast<TargetCity>(graph[it->second]);
-        if (!tgtCity) continue;
-
-        int defLv = tgtCity->getDefenseLevel();
-        int missilesFromThisBase = std::min(fb.inventoryCount, baseCap);
-        int bypassedCount = std::max(0, missilesFromThisBase - defLv);
-        int bypassedDamage = bypassedCount * fb.damagePerMissile;
-
-        auto& cd = candidates[tgtName];
-        cd.totalDamage += bypassedDamage;
-        cd.srcIndices.push_back(i);
-      }
-    }
-    if (candidates.empty()) break;
-
-    // Step 2: Choose best target
-    std::string bestTarget;
-    int bestDefense = 0;
-    int bestTotalDamage = -1;
-    for (auto& [name, cd] : candidates) {
-      if (cd.totalDamage > bestTotalDamage) {
-        bestTotalDamage = cd.totalDamage;
-        bestTarget = name;
-        auto it = cities.find(name);
-        if (it != cities.end()) {
-          auto tgtCity = std::dynamic_pointer_cast<TargetCity>(graph[it->second]);
-          bestDefense = tgtCity ? tgtCity->getDefenseLevel() : 0;
-        }
-      }
-    }
-    if (bestTotalDamage <= 0) break;
-
-    std::cout << "\n*** Rapid-Fire on '" << bestTarget
-              << "' (defense=" << bestDefense << ") ***\n";
-
-    // Step 3: Collect all missiles to be fired at best target
-    struct MissileStrike {
-      int fbIndex;
-      int damage;
-      Graph::VertexDescriptor baseDesc;
-      PathInfo path;
-    };
-    std::vector<MissileStrike> strikes;
-
-    for (int idx : candidates[bestTarget].srcIndices) {
-      auto& fb = fallbackBases[idx];
-      if (fb.inventoryCount == 0) continue;
-
-      auto pathIt = std::find_if(
-          fb.paths.begin(), fb.paths.end(),
-          [&](auto& p) { return graph[p.target]->getName() == bestTarget; });
-      if (pathIt == fb.paths.end()) continue;
-
-      auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[fb.baseDesc]);
-      int baseCap = basePtr ? basePtr->getCapacity() : 0;
-      int canFire = std::min({fb.inventoryCount, baseCap});
-      for (int i = 0; i < canFire; ++i) {
-        strikes.push_back({idx, fb.damagePerMissile, fb.baseDesc, *pathIt});
-      }
-    }
-
-    // Step 4: Sort strikes by damage descending (defense blocks strongest first)
-    std::sort(strikes.begin(), strikes.end(), [](const MissileStrike& a, const MissileStrike& b) {
-      return a.damage > b.damage;
-    });
-
-    // Step 5: Fire missiles
-    int fired = 0, blocked = 0;
-    for (const auto& s : strikes) {
-      auto& fb = fallbackBases[s.fbIndex];
-      auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[s.baseDesc]);
-      if (!basePtr) continue;
-
-      if (fb.inventoryCount <= 0 || basePtr->getCapacity() <= 0) continue;
-
-      // Consume inventory and base capacity
-      fb.inventoryCount -= 1;
-      basePtr->setCapacity(basePtr->getCapacity() - 1);
-
-      // Log missile path
-      std::cout << "Base '" << fb.baseName << "' fires 1 x '" << fb.missileType
-                << "' via path:";
-      for (auto& step : s.path.cities) std::cout << " " << step;
-      std::cout << "\n";
-
-      // Apply defense
-      if (blocked < bestDefense) {
-        blocked++;
-      } else {
-        totalDamage += fb.damagePerMissile;
-      }
-      fired++;
-    }
-
-    std::cout << "Summary: Fired=" << fired << ", Blocked=" << blocked
-              << ", Bypassed=" << (fired - blocked) << "\n";
-  }
-
-  std::cout << "\n**** Fallback total damage: " << totalDamage << " ****\n\n\n";
-}
-
 void Scenario3::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) {
     for (auto& [key, paths] : missilePathMap) {
         paths.erase(
@@ -472,3 +288,166 @@ void Scenario3::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) 
     }
 }
 
+
+void Scenario3::attackFallbackPhase() {
+    int totalDamage = 0;
+
+    auto& graph  = mapInformation.getCitiesGraphRef();
+    auto  cities = mapInformation.getCitiesVertex();
+
+    // helper struct: one base firing one missile type over its revealed paths
+    struct FallbackBase {
+        Graph::VertexDescriptor baseDesc;
+        std::string             baseName;
+        std::string             missileType;      // "B2", "C1", ...
+        int                     inventoryCount;   // remaining missiles of this type
+        int                     damagePerMissile;
+        std::vector<PathInfo>   paths;            // revealed paths for this missile type
+    };
+
+    // 1) build list of all base+missile-type combos that can fire
+    std::vector<FallbackBase> fallbackBases;
+    const std::vector<std::string> missileTypes = {"B2","C1","B1","C2"};
+    for (const auto& mtypeStr : missileTypes) {
+        // get inventory for this type
+        int inv = (mtypeStr == "B2" ? inventory.B2
+                 : mtypeStr == "C1" ? inventory.C1
+                 : mtypeStr == "B1" ? inventory.B1
+                 : inventory.C2);
+        if (inv <= 0) continue;
+
+        // fetch missile properties
+        auto mt      = getMissileType(mtypeStr);
+        auto missile = MissileFactory::getMissile(mt);
+        int dmg      = missile.getDestruction();
+
+        // only use paths revealed for this specific missile type
+        auto keyIt = missilePathMap.find(mtypeStr + " revealed");
+        if (keyIt == missilePathMap.end()) continue;
+        auto& allPaths = keyIt->second;
+
+        // for each base, collect this type's paths
+        for (auto baseDesc : baseVertices) {
+            std::vector<PathInfo> ps;
+            for (auto& p : allPaths) {
+                if (p.base == baseDesc) {
+                    ps.push_back(p);
+                }
+            }
+            if (ps.empty()) continue;
+
+            auto ptr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
+            if (!ptr) continue;
+
+            fallbackBases.push_back({
+                baseDesc,
+                ptr->getName(),
+                mtypeStr,
+                inv,
+                dmg,
+                std::move(ps)
+            });
+        }
+    }
+
+    // 2) rapid-fire until no missiles left or no targets
+    while (true) {
+        bool missilesLeft = false;
+        for (auto& fb : fallbackBases) {
+            if (fb.inventoryCount > 0) { missilesLeft = true; break; }
+        }
+        if (!missilesLeft) break;
+
+        // accumulate potential damage per target
+        struct Cand { int totalMiss=0, dmgPerMiss=0; std::vector<int> src; };
+        std::unordered_map<std::string,Cand> candidates;
+
+        // calculate how many missiles could fire at each target
+        for (int i = 0; i < (int)fallbackBases.size(); ++i) {
+            auto& fb = fallbackBases[i];
+            if (fb.inventoryCount == 0) continue;
+
+            for (auto& p : fb.paths) {
+                auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[p.base]);
+                int baseCap  = basePtr ? basePtr->getCapacity() : 0;
+                if (baseCap <= 0) continue;
+
+                std::string tgtName = graph[p.target]->getName();
+                auto& cd = candidates[tgtName];
+                cd.totalMiss  += std::min(fb.inventoryCount, baseCap);
+                cd.dmgPerMiss  = fb.damagePerMissile;
+                cd.src.push_back(i);
+            }
+        }
+        if (candidates.empty()) break;
+
+        // choose best target by bypassed damage
+        std::string bestTarget;
+        int bestDefense=0, bestBypassed=-1;
+        for (auto& [name, cd] : candidates) {
+            auto it = cities.find(name);
+            if (it == cities.end()) continue;
+            auto tgtCity = std::dynamic_pointer_cast<TargetCity>(graph[it->second]);
+            int defLv = tgtCity->getDefenseLevel();
+            int bypassedCount = std::max(0, cd.totalMiss - defLv);
+            int bypassedDmg   = bypassedCount * cd.dmgPerMiss;
+            if (bypassedDmg > bestBypassed) {
+                bestBypassed = bypassedDmg;
+                bestTarget   = name;
+                bestDefense  = defLv;
+            }
+        }
+        if (bestBypassed <= 0) break;
+
+        // log selection
+        std::cout << "\n*** Rapid-Fire on '" << bestTarget
+                  << "' (defense=" << bestDefense << ") ***\n";
+
+        auto& chosen = candidates[bestTarget];
+        int fired=0, blocked=0;
+
+        // fire from each contributing base
+        for (int idx : chosen.src) {
+            auto& fb = fallbackBases[idx];
+            if (fb.inventoryCount == 0) continue;
+
+            // find path for this missile type
+            auto pathIt = std::find_if(fb.paths.begin(), fb.paths.end(),
+                [&](auto& p){ return graph[p.target]->getName() == bestTarget; });
+            if (pathIt == fb.paths.end()) continue;
+
+            auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[fb.baseDesc]);
+            int baseCap = basePtr->getCapacity();
+            int canFire = std::min({fb.inventoryCount, baseCap, chosen.totalMiss});
+
+            // log base, missile type, and exact path
+            std::cout << "Base '" << fb.baseName
+                      << "' fires " << canFire << " x '" << fb.missileType
+                      << "' via path:";
+            for (auto& step : pathIt->cities) std::cout << " " << step;
+            std::cout << "\n";
+
+            // simulate shots
+            for (int k = 0; k < canFire; ++k) {
+                if (blocked < bestDefense) {
+                    blocked++;
+                } else {
+                    totalDamage += fb.damagePerMissile;
+                }
+                fired++;
+            }
+
+            // update inventory and capacity
+            fb.inventoryCount -= canFire;
+            basePtr->setCapacity(baseCap - canFire);
+        }
+
+        std::cout << "Summary: Fired=" << fired
+                  << ", Blocked=" << blocked
+                  << ", Bypassed=" << (fired - blocked) << "\n";
+    }
+
+    // final total damage log
+    std::cout << "\n**** Fallback total damage: "
+              << totalDamage << " ****\n";
+}
