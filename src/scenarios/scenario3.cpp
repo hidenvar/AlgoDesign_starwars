@@ -9,6 +9,7 @@ void Scenario3::solve(){
     initialize();
     findPaths();
     buildMissilePathMap();
+    attack();
 }
 Scenario3::Scenario3(Graph g, Inventory i): Scenario(g){
     inventory = i;
