@@ -46,96 +46,96 @@ void Scenario4::initialize()
 
 void Scenario4::findPaths()
 {
-    for (auto &[key, val] : missileToGraphs)
+    const auto &citiesGraph = Scenario::mapInformation.getCitiesGraph();
+
+    // Identify base and target cities
+    auto vertices = boost::vertices(citiesGraph);
+    for (auto vit = vertices.first; vit != vertices.second; ++vit)
     {
-        const auto &citiesGraph = val.first.getCitiesGraph();
-        val.second.clear();
-
-        for (auto base : baseVertices)
+        const auto &city = citiesGraph[*vit];
+        if (city->getType() == CityType::BASE)
         {
-            std::queue<std::vector<Graph::VertexDescriptor>> q;
-            std::unordered_set<Graph::VertexDescriptor> visited;
-
-            q.push({base});
-            visited.insert(base);
-
-            while (!q.empty())
-            {
-                auto currentPath = q.front();
-                q.pop();
-                auto currentVertex = currentPath.back();
-
-                // Check if reached target
-                bool isTarget = (std::find(targetVertices.begin(), targetVertices.end(), currentVertex) != targetVertices.end());
-                if (isTarget)
-                {
-                    // Convert path to city names and count spies
-                    PathInfo pathInfo;
-                    pathInfo.base = base;
-                    pathInfo.target = currentVertex;
-                    int spyCount = 0;
-                    double totalDistance = 0.0;
-                    double maxGap = INT_MIN;
-
-                    for (size_t i{}; i < currentPath.size(); ++i)
-                    {
-                        const auto &city = citiesGraph[currentPath[i]];
-                        pathInfo.cities.push_back(city->getName());
-                        if (city->hasSpy())
-                            spyCount++;
-
-                        if (i > 0)
-                        {
-                            const auto &prevCity = citiesGraph[currentPath[i - 1]];
-                            auto td = val.first.calculateDistance(*prevCity, *city);
-                            maxGap = std::max(maxGap, td);
-                            totalDistance += td;
-                        }
-                    }
-
-                    pathInfo.totalDistance = totalDistance;
-                    pathInfo.spyCount = spyCount;
-                    pathInfo.maxGap = maxGap;
-                    val.second.push_back(pathInfo);
-                }
-
-                auto neighbors = boost::adjacent_vertices(currentVertex, citiesGraph);
-                for (auto nit = neighbors.first; nit != neighbors.second; ++nit)
-                {
-                    auto neighbor = *nit;
-
-                    if (visited.find(neighbor) == visited.end())
-                    {
-                        visited.insert(neighbor);
-                        auto newPath = currentPath;
-                        newPath.push_back(neighbor);
-                        q.push(newPath);
-                    }
-                }
-            }
+            baseVertices.push_back(*vit);
+        }
+        else if (city->getType() == CityType::TARGET)
+        {
+            targetVertices.push_back(*vit);
         }
     }
-}
 
-void Scenario4::buildPaths()
-{
-    auto compare = [](const PathInfo &a, const PathInfo &b)
+    paths.clear(); // Clear previous results
+
+    // BFS for each base city
+    for (auto base : baseVertices)
     {
-        return std::tie(a.spyCount, a.maxGap, a.totalDistance) < std::tie(b.spyCount, b.maxGap, b.totalDistance);
-    };
+        std::queue<std::vector<Graph::VertexDescriptor>> q;
+        std::unordered_set<Graph::VertexDescriptor> visited;
 
-    for (const auto &[missileUn, graphPair] : missileToGraphs)
-    {
-        missilePathsByBase[missileUn].clear();
+        q.push({base});
+        visited.insert(base);
 
-        for (const auto &path : graphPair.second)
+        while (!q.empty())
         {
-            missilePathsByBase[missileUn][path.base].push_back(path);
-        }
+            auto currentPath = q.front();
+            q.pop();
+            auto currentVertex = currentPath.back();
 
-        for (auto &[base, paths] : missilePathsByBase[missileUn])
-        {
-            sort(paths.begin(), paths.end(), compare);
+            bool isTarget = (std::find(targetVertices.begin(), targetVertices.end(),
+                                       currentVertex) != targetVertices.end());
+            if (isTarget)
+            {
+                PathInfo pathInfo;
+                pathInfo.base = base;
+                pathInfo.target = currentVertex;
+                int spyCount = 0;
+                double maxGap = 0.0;
+                double totalDistance = 0.0;
+
+                const auto &weightMap = boost::get(boost::edge_weight, citiesGraph);
+
+                for (size_t i = 0; i < currentPath.size(); ++i)
+                {
+                    const auto &city = citiesGraph[currentPath[i]];
+                    pathInfo.cities.push_back(city->getName());
+                    if (city->hasSpy())
+                    {
+                        spyCount++;
+                    }
+
+                    if (i > 0)
+                    {
+                        const auto &prevCity = citiesGraph[currentPath[i - 1]];
+                        totalDistance += Scenario::mapInformation.calculateDistance(*prevCity, *city);
+
+                        auto [e, exists] =
+                            boost::edge(currentPath[i - 1], currentPath[i], citiesGraph);
+                        if (exists)
+                        {
+                            maxGap = std::max(maxGap, (weightMap[e]));
+                        }
+                    }
+                }
+
+                pathInfo.totalDistance = totalDistance;
+                pathInfo.spyCount = spyCount;
+                pathInfo.maxGap = maxGap;
+                paths.push_back(pathInfo);
+            }
+
+            // Explore neighbors
+            auto neighbors = boost::adjacent_vertices(currentVertex, citiesGraph);
+            for (auto nit = neighbors.first; nit != neighbors.second; ++nit)
+            {
+                auto neighbor = *nit;
+
+                if (visited.find(neighbor) == visited.end())
+                {
+                    visited.insert(neighbor);
+                    auto newPath = currentPath;
+                    newPath.push_back(neighbor);
+                    q.push(newPath);
+                }
+            }
         }
     }
 }
