@@ -9,64 +9,38 @@ Scenario4::Scenario4(Graph &g) : Scenario(g) {}
 
 void Scenario4::initialize()
 {
+    int uncontrolledDistance = 900;
+
     auto citiesGraph = Scenario::mapInformation.getCitiesGraph();
     auto cityVertices = Scenario::mapInformation.getCitiesVertex();
-    auto vertices = boost::vertices(citiesGraph);
+
+    // convert to vector
     std::vector<std::pair<std::string, Graph::VertexDescriptor>> cities(
         cityVertices.begin(), cityVertices.end());
 
-    for (auto vit = vertices.first; vit != vertices.second; ++vit)
+    // iterate over all cities pairs
+    for (size_t i = 0; i < cities.size(); ++i)
     {
-        const auto &city = citiesGraph[*vit];
-        if (city->getType() == CityType::BASE)
+        for (size_t j = i + 1; j < cities.size(); ++j)
         {
-            baseVertices.push_back(*vit);
-        }
-        else if (city->getType() == CityType::TARGET)
-        {
-            targetVertices.push_back(*vit);
-        }
-    }
+            const std::string &city1Name = cities[i].first;
+            const std::string &city2Name = cities[j].first;
 
-    std::set<int> missileVariations;
+            auto city1 = citiesGraph[cities[i].second];
+            auto city2 = citiesGraph[cities[j].second];
 
-    for (const auto &base : baseVertices)
-    {
-        const auto &cityPtr = citiesGraph[base];
-        auto baseCity = std::dynamic_pointer_cast<BaseCity>(cityPtr);
-        for (const auto &[missile, count] : baseCity->getMissiles())
-        {
-            missileVariations.insert(missile.getUncontrolledDistance());
-        }
-    }
+            // calculate distance
+            double distance =
+                Scenario::mapInformation.calculateDistance(*city1, *city2);
 
-    std::vector<int> missilesUncontrolledDistances(missileVariations.begin(), missileVariations.end());
-
-    for (const auto &m : missilesUncontrolledDistances)
-    {
-        Graph g = Scenario::mapInformation;
-        for (size_t i = 0; i < cities.size(); ++i)
-        {
-            for (size_t j = i + 1; j < cities.size(); ++j)
+            // connect  if distance <= uncontrolledDistance
+            if (distance <= uncontrolledDistance)
             {
-                const std::string &city1Name = cities[i].first;
-                const std::string &city2Name = cities[j].first;
-
-                auto city1 = citiesGraph[cities[i].second];
-                auto city2 = citiesGraph[cities[j].second];
-
-                double distance =
-                    Scenario::mapInformation.calculateDistance(*city1, *city2);
-
-                if (distance <= m)
-                {
-                    std::string a = city1Name;
-                    std::string b = city2Name;
-                    g.connectCities(a, b);
-                }
+                std::string a = city1Name;
+                std::string b = city2Name;
+                Scenario::mapInformation.connectCities(a, b);
             }
         }
-        missileToGraphs[m].first = g;
     }
 }
 
@@ -173,8 +147,6 @@ void Scenario4::solve()
     buildPaths();
     printPathInfo();
 }
-
-
 
 void Scenario4::printPathInfo() const
 {
