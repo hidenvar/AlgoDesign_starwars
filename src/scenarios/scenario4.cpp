@@ -140,6 +140,40 @@ void Scenario4::findPaths()
     }
 }
 
+void Scenario4::buildPaths()
+{
+    for (const auto &path : paths)
+    {
+        // A type missiles path recognition
+        if (path.totalDistance <= 2500 && path.maxGap <= 500)
+        {
+            missilePathMap[path.spyCount < 3 ? "A1 safe" : "A1 revealed"].push_back(path);
+            missilePathMap[path.spyCount < 2 ? "A2 safe" : "A2 revealed"].push_back(path);
+            missilePathMap[path.spyCount < 4 ? "A3 safe" : "A3 revealed"].push_back(path);
+        }
+
+        // B type missiles path recognition
+        if (path.totalDistance <= 5000 && path.maxGap <= 500)
+        {
+            missilePathMap[path.spyCount < 2 ? "B1 safe" : "B1 revealed"].push_back(path);
+            missilePathMap[path.spyCount < 0 ? "B2 safe" : "B2 revealed"].push_back(path);
+        }
+
+        // C1 type missiles path recognition
+        if (path.totalDistance <= 3000 && path.maxGap <= 700)
+        {
+            missilePathMap[path.spyCount < 2 ? "C1 safe" : "C1 revealed"].push_back(path);
+        }
+
+        // C2 type missile path recognition
+
+        if (path.totalDistance <= 2900 && path.maxGap <= 900)
+        {
+            missilePathMap[path.spyCount < 1 ? "C2 safe" : "C2 revealed"].push_back(path);
+        }
+    }
+}
+
 void Scenario4::solve()
 {
     initialize();
