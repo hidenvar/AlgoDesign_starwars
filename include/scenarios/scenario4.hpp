@@ -7,11 +7,14 @@ class Scenario4 : public Scenario
 {
 public:
     Scenario4(Graph &g);
-    void initialize() override;
     void solve() override;
+
+
+private:
     void findPaths();
     void buildPaths();
     void printPathInfo() const;
+    void initialize() override;
 
 private:
     struct PathInfo
@@ -24,8 +27,8 @@ private:
         double maxGap;
     };
 
-    std::unordered_map<int, std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>>> missilePathsByBase;
-    std::unordered_map<int, std::pair<Graph, std::vector<PathInfo>>> missileToGraphs;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
+    std::vector<PathInfo> paths;
+    std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap; // map each missile to a revealed or a safe path
 };
