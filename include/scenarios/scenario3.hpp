@@ -31,5 +31,6 @@ class Scenario3 : public Scenario {
   std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
   void buildMissilePathMap();
   void removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc);
+  void attackFallbackPhase();
 
 };
