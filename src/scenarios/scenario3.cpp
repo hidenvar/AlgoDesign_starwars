@@ -181,65 +181,122 @@ void Scenario3::buildMissilePathMap(){
 std::unordered_map<std::string, std::vector<Scenario3::PathInfo>> Scenario3::getMissilePathMap(){return missilePathMap;}
 
 void Scenario3::attack() {
-    int totalDamage = 0;
-    // missile types are c and b
-    // we have limited capacity in each base
-    // first we shoot highest damage missile through a safe path
-    // missile damages : B1 90 / B2 300 / C1 110 / C2 10
-    // missile priority : B2, C1, B1, C2
-    std::cout << "**** Starting safe attack phase *****\n";
-    auto& graph = mapInformation.getCitiesGraphRef();    
-    std::vector<std::string> missilePriority = {"B2", "C1", "B1", "C2"};
+  int totalDamage = 0;
+  // missile types are c and b
+  // we have limited capacity in each base
+  // first we shoot highest damage missile through a safe path
+  // missile damages : B1 90 / B2 300 / C1 110 / C2 10
+  // missile priority : B2, C1, B1, C2
 
-    for (const auto& mtypeStr : missilePriority) {
-        int& count = [&]() -> int& {
-            if (mtypeStr == "B2") return inventory.B2;
-            if (mtypeStr == "C1") return inventory.C1;
-            if (mtypeStr == "B1") return inventory.B1;
-            return inventory.C2;
-        }();
+  std::cout << "**** Starting safe attack phase *****\n";
 
-        if (count <= 0) continue;
+  auto& graph = mapInformation.getCitiesGraphRef();
+  std::vector<std::string> missilePriority = {"B2", "C1", "B1", "C2"};
 
-        auto mt = getMissileType(mtypeStr);
-        auto missile = MissileFactory::getMissile(mt);
-        int damagePerMissile = missile.getDestruction();
+  for (const auto& mtypeStr : missilePriority) {
+    int& count = [&]() -> int& {
+      if (mtypeStr == "B2") return inventory.B2;
+      if (mtypeStr == "C1") return inventory.C1;
+      if (mtypeStr == "B1") return inventory.B1;
+      return inventory.C2;
+    }();
 
-        for (auto& path : missilePathMap[mtypeStr + " safe"]) {
-            auto baseDesc = path.base;
+    if (count <= 0) continue;
 
-            auto it = std::find(baseVertices.begin(), baseVertices.end(), baseDesc);
-            if (it == baseVertices.end()) continue;
+    auto mt = getMissileType(mtypeStr);
+    auto missile = MissileFactory::getMissile(mt);
+    int damagePerMissile = missile.getDestruction();
 
-            auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
-            if (!baseCityPtr) continue;
+    auto& missilePaths = missilePathMap[mtypeStr + " safe"];
 
-            int baseCap = baseCityPtr->getCapacity();
-            if (baseCap == 0) {
-                baseVertices.erase(it);
-                continue;
-            }
+    for (auto it = missilePaths.begin(); it != missilePaths.end(); /* no ++ */) {
+      auto baseDesc = it->base;
 
-            int used = std::min(count, baseCap);
-            int pathDamage = damagePerMissile * used;
-            totalDamage += pathDamage;
-            count -= used;
-            baseCityPtr->setCapacity(baseCap - used);
+      auto baseIt = std::find(baseVertices.begin(), baseVertices.end(), baseDesc);
+      if (baseIt == baseVertices.end()) {
+        ++it;
+        continue;
+      }
 
-            std::cout << "Shot " << used << "x " << mtypeStr
-                      << " missiles via path: ";
-            for (const auto& cityName : path.cities) {
-                std::cout << cityName << " ";
-            }
-            std::cout << "| Damage: " << pathDamage << "\n";
+      auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
+      if (!baseCityPtr) {
+        ++it;
+        continue;
+      }
 
-            if (baseCityPtr->getCapacity() == 0) {
-                baseVertices.erase(it);
-            }
+      int baseCap = baseCityPtr->getCapacity();
+      if (baseCap == 0) {
+        baseVertices.erase(baseIt);
 
-            if (count == 0) break;
-        }
+        // full cleanup for this base
+        removePathsFromAllMissileMaps(baseDesc);
+
+        // Current iterator is now invalid
+        it = missilePaths.begin();  // Restart loop safely
+        continue;
+      }
+
+      // Fire
+      int used = std::min(count, baseCap);
+      int pathDamage = damagePerMissile * used;
+      totalDamage += pathDamage;
+      count -= used;
+      baseCityPtr->setCapacity(baseCap - used);
+
+      std::cout << "Shot " << used << "x " << mtypeStr << " missiles via path: ";
+      for (const auto& cityName : it->cities) {
+        std::cout << cityName << " ";
+      }
+      std::cout << "| Damage: " << pathDamage << "\n";
+
+      if (baseCityPtr->getCapacity() == 0) {
+        baseVertices.erase(baseIt);
+
+        removePathsFromAllMissileMaps(baseDesc);
+
+        paths.erase(
+          std::remove_if(paths.begin(), paths.end(), [&](const PathInfo& p) {
+            return p.base == baseDesc;
+          }),
+          paths.end()
+        );
+
+        it = missilePaths.begin();  // Start over
+        continue;
+      }
+
+      if (count == 0) break;
+
+      ++it;
     }
+  }
 
-    std::cout << "Total Damage: " << totalDamage << "\n";
+  std::cout << "Total Damage: " << totalDamage << "\n";
+}
+
+
+void Scenario3::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) {
+
+  // clear the ref map
+  std::vector<std::string> keys = {"B2 safe", "B2 revealed", "C1 safe", "C1 revealed",
+                                   "B1 safe", "B1 revealed", "C2 safe", "C2 revealed"};
+
+  for (const auto& key : keys) {
+    auto it = missilePathMap.find(key);
+    if (it != missilePathMap.end()) {
+      it->second.erase(
+        std::remove_if(it->second.begin(), it->second.end(),
+                       [&](const PathInfo& p) { return p.base == baseDesc; }),
+        it->second.end()
+      );
+    }
+  }
+
+  // clear from main paths vector
+  paths.erase(
+          std::remove_if(paths.begin(), paths.end(), [&](const PathInfo& p) {
+            return p.base == baseDesc;
+          }),
+          paths.end()
+        );
 }
