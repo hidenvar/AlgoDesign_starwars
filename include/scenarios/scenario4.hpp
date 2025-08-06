@@ -15,6 +15,7 @@ private:
     void buildPaths();
     void printPathInfo() const;
     void initialize() override;
+    void attack();
 
 private:
     struct PathInfo

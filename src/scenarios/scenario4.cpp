@@ -174,12 +174,49 @@ void Scenario4::buildPaths()
     }
 }
 
+void Scenario4::attack()
+{
+    int totalDamage = 0;
+    const auto& citiesGraph = Scenario::mapInformation.getCitiesGraph();
+    
+    for (const auto& base : baseVertices) {
+        
+        const auto& baseCity = citiesGraph[base];
+        BaseCity *baseCityPtr = dynamic_cast<BaseCity *>(baseCity.get());
+        
+        if (!baseCityPtr)
+            continue;
+
+
+        for (const auto& [missile, count] : baseCityPtr->getMissiles()) {
+            const auto& paths = missilePathMap[missile.getTypeString() + " safe"];
+            if (paths.empty()) {
+                continue;
+            }
+
+            // Use the first path for the attack
+            const auto& path = paths.front();
+            std::cout << "Launching " << count << " " << missile.getType() << " missiles using this path:\n";
+            for (const auto& cityName : path.cities) {
+                std::cout << cityName << " -> ";
+            }
+            std::cout << "END\n";
+
+            int damage = missile.getDestruction() * count;
+            std::cout << "Damage of this attack: " << damage << "\n";
+            totalDamage += damage;
+        }
+    }
+    std::cout << "Total damage caused by all attacks: " << totalDamage << "\n";
+}
+
 void Scenario4::solve()
 {
     initialize();
     findPaths();
     buildPaths();
-    printPathInfo();
+    attack();
+    // printPathInfo();
 }
 
 void Scenario4::printPathInfo() const
@@ -194,8 +231,7 @@ void Scenario4::printPathInfo() const
         "B1 safe", "B1 revealed",
         "B2 safe", "B2 revealed",
         "C1 safe", "C1 revealed",
-        "C2 safe", "C2 revealed"
-    };
+        "C2 safe", "C2 revealed"};
 
     for (const auto &category : expectedCategories)
     {
