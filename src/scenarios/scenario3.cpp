@@ -288,176 +288,196 @@ void Scenario3::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) 
     }
 }
 
+
+// === Public Entry Point for Fallback Phase ===
 void Scenario3::attackFallbackPhase() {
-  int totalDamage = 0;
+    // Prepare fallback bases
+    auto fallbackBases = collectFallbackBases();
+    int totalFallbackDamage = 0;
 
-  auto& graph = mapInformation.getCitiesGraphRef();
-  auto cities = mapInformation.getCitiesVertex();
+    // Continue firing waves until no missiles or no bypassable targets
+    while (hasMissilesRemaining(fallbackBases)) {
+        auto targets = gatherTargets(fallbackBases);
+        if (targets.empty()) break;
 
-  struct FallbackBase {
-    Graph::VertexDescriptor baseDesc;
-    std::string baseName;
-    std::string missileType;
-    int inventoryCount;
-    int damagePerMissile;
-    std::vector<PathInfo> paths;
-  };
+        auto [bestTarget, bestDamage] = selectBestTarget(targets);
+        if (bestDamage <= 0) break;
 
-  std::vector<FallbackBase> fallbackBases;
-  const std::vector<std::string> missileTypes = {"B2", "C1", "B1", "C2"}; // ordered by priority
-  for (const auto& mtypeStr : missileTypes) {
-    int inv = (mtypeStr == "B2"   ? inventory.B2
-               : mtypeStr == "C1" ? inventory.C1
-               : mtypeStr == "B1" ? inventory.B1
-                                  : inventory.C2);
-    if (inv <= 0) continue;
+        totalFallbackDamage += executeFire(bestTarget, targets[bestTarget], fallbackBases);
+    }
 
-    auto mt = getMissileType(mtypeStr);
-    auto missile = MissileFactory::getMissile(mt);
-    int dmg = missile.getDestruction();
+    std::cout << "\n**** Fallback total damage: " << totalFallbackDamage << " ****\n";
+}
 
-    auto keyIt = missilePathMap.find(mtypeStr + " revealed");
-    if (keyIt == missilePathMap.end()) continue;
-    auto& allPaths = keyIt->second;
+// === Step 1: Collect bases with inventory and valid paths ===
+std::vector<Scenario3::FallbackBase> Scenario3::collectFallbackBases() {
+    std::vector<FallbackBase> bases;
+    const std::vector<std::string> missileOrder = {"B2", "C1", "B1", "C2"};
 
-    for (auto baseDesc : baseVertices) {
-      std::vector<PathInfo> ps;
-      for (auto& p : allPaths) {
-        if (p.base == baseDesc) {
-          ps.push_back(p);
+    for (const auto& type : missileOrder) {
+        int count = getInventoryCount(type);
+        if (count <= 0) continue;
+
+        auto missile = MissileFactory::getMissile(getMissileType(type));
+        int damage = missile.getDestruction();
+        auto allPaths = missilePathMap[type + " revealed"];
+
+        for (auto baseV : baseVertices) {
+            std::vector<PathInfo> valid;
+            for (auto& p : allPaths) {
+                if (p.base == baseV) valid.push_back(p);
+            }
+            if (valid.empty()) continue;
+
+            auto basePtr = std::dynamic_pointer_cast<BaseCity>(mapInformation.getCitiesGraphRef()[baseV]);
+            if (!basePtr) continue;
+
+            bases.push_back({
+                baseV,
+                basePtr->getName(),
+                type,
+                count,
+                damage,
+                std::move(valid)
+            });
         }
-      }
-      if (ps.empty()) continue;
-
-      auto ptr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
-      if (!ptr) continue;
-
-      fallbackBases.push_back(
-          {baseDesc, ptr->getName(), mtypeStr, inv, dmg, std::move(ps)});
     }
-  }
+    return bases;
+}
 
-  while (true) {
-    bool missilesLeft = false;
-    for (auto& fb : fallbackBases) {
-      if (fb.inventoryCount > 0) {
-        missilesLeft = true;
-        break;
-      }
+// === Step 2: Check if any missiles remain ===
+bool Scenario3::hasMissilesRemaining(const std::vector<FallbackBase>& bases) {
+    for (const auto& fb : bases) {
+        if (fb.inventoryCount > 0) return true;
     }
-    if (!missilesLeft) break;
+    return false;
+}
 
-    struct Cand {
-      int defenseLevel = 0;
-      std::vector<std::tuple<int, int, int>> src;  // (fb_idx, count, damage)
-    };
-    std::unordered_map<std::string, Cand> candidates;
+// === Step 3: Build candidate targets map ===
+std::unordered_map<std::string, Scenario3::Cand>
+Scenario3::gatherTargets(std::vector<FallbackBase>& bases) {
+    std::unordered_map<std::string, Cand> targets;
+    auto& graph = mapInformation.getCitiesGraphRef();
+    auto cities = mapInformation.getCitiesVertex();
 
-    for (int i = 0; i < (int)fallbackBases.size(); ++i) {
-      auto& fb = fallbackBases[i];
-      if (fb.inventoryCount == 0) continue;
+    for (size_t i = 0; i < bases.size(); ++i) {
+        auto& fb = bases[i];
+        if (fb.inventoryCount == 0) continue;
 
-      for (auto& p : fb.paths) {
-        auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[p.base]);
-        int baseCap = basePtr ? basePtr->getCapacity() : 0;
-        if (baseCap <= 0) continue;
+        for (auto& path : fb.paths) {
+            auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[path.base]);
+            int cap = basePtr ? basePtr->getCapacity() : 0;
+            int possible = std::min(fb.inventoryCount, cap);
+            if (possible <= 0) continue;
 
-        std::string tgtName = graph[p.target]->getName();
-        int canFire = std::min(fb.inventoryCount, baseCap);
-        if (canFire <= 0) continue;
+            std::string tgtName = graph[path.target]->getName();
+            auto& cand = targets[tgtName];
 
-        auto& cd = candidates[tgtName];
-        if (cd.defenseLevel == 0) {
-          auto cit = cities.find(tgtName);
-          if (cit != cities.end()) {
-            auto tgtCity =
-                std::dynamic_pointer_cast<TargetCity>(graph[cit->second]);
-            cd.defenseLevel = tgtCity ? tgtCity->getDefenseLevel() : 0;
-          }
+            if (cand.defenseLevel == 0) {
+                auto it = cities.find(tgtName);
+                if (it != cities.end()) {
+                    auto tgtPtr = std::dynamic_pointer_cast<TargetCity>(graph[it->second]);
+                    cand.defenseLevel = tgtPtr ? tgtPtr->getDefenseLevel() : 0;
+                }
+            }
+            cand.src.emplace_back(i, possible, fb.damagePerMissile);
         }
-        cd.src.emplace_back(i, canFire, fb.damagePerMissile);
-      }
     }
-    if (candidates.empty()) break;
+    return targets;
+}
 
-    std::string bestTarget;
-    int bestBypassedDamage = 0;
-
-    for (auto& [tgtName, cd] : candidates) {
-      int totalBypassedDamage = 0;
-      int remainingDefense = cd.defenseLevel;
-
-      std::vector<std::tuple<int, int, int>> sortedSrc = cd.src;
-      std::sort(sortedSrc.begin(), sortedSrc.end(),
-                [](auto& a, auto& b) {
-                  return std::get<2>(a) > std::get<2>(b); // sort by damage descending
-                });
-
-      for (auto& [idx, cnt, dmg] : sortedSrc) {
-        int blocked = std::min(cnt, remainingDefense);
-        remainingDefense -= blocked;
-        int passed = cnt - blocked;
-        totalBypassedDamage += passed * dmg;
-      }
-
-      if (totalBypassedDamage > bestBypassedDamage) {
-        bestBypassedDamage = totalBypassedDamage;
-        bestTarget = tgtName;
-      }
-    }
-    if (bestBypassedDamage <= 0) break;
-
-    auto& chosen = candidates[bestTarget];
-    std::cout << "\n*** Rapid-Fire on '" << bestTarget
-              << "' (defense=" << chosen.defenseLevel << ") ***\n";
-
-    // sort firing order by damage again
-    std::sort(chosen.src.begin(), chosen.src.end(),
-              [](auto& a, auto& b) {
-                return std::get<2>(a) > std::get<2>(b); // sort by damage descending
-              });
-
-    int totalFired = 0;
-    int totalBlocked = 0;
-    int remainingDefense = chosen.defenseLevel;
-
-    for (auto& [idx, cnt, dmg] : chosen.src) {
-      auto& fb = fallbackBases[idx];
-      if (fb.inventoryCount == 0) continue;
-
-      auto pathIt = std::find_if(
-          fb.paths.begin(), fb.paths.end(),
-          [&](auto& p) { return graph[p.target]->getName() == bestTarget; });
-      if (pathIt == fb.paths.end()) continue;
-
-      auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[fb.baseDesc]);
-      int baseCap = basePtr->getCapacity();
-      int fireNow = std::min({fb.inventoryCount, baseCap, cnt});
-
-      std::cout << "Base '" << fb.baseName << "' fires " << fireNow << " x '"
-                << fb.missileType << "' [dmg=" << fb.damagePerMissile
-                << "] via path:";
-      for (auto& step : pathIt->cities) std::cout << " " << step;
-      std::cout << "\n";
-
-      for (int k = 0; k < fireNow; ++k) {
-        if (remainingDefense > 0) {
-          totalBlocked++;
-          remainingDefense--;
-        } else {
-          totalDamage += fb.damagePerMissile;
+// === Step 4: Select best target by bypassed damage ===
+std::pair<std::string,int> Scenario3::selectBestTarget(
+    const std::unordered_map<std::string, Cand>& targets) {
+    std::string best;
+    int bestDamage = 0;
+    for (auto& [name, cand] : targets) {
+        int bypass = calculateBypassedDamage(cand);
+        if (bypass > bestDamage) {
+            bestDamage = bypass;
+            best = name;
         }
-        totalFired++;
-      }
+    }
+    return {best, bestDamage};
+}
 
-      fb.inventoryCount -= fireNow;
-      basePtr->setCapacity(baseCap - fireNow);
+// === Step 4b: Calculate damage past defense, blocking high-damage first ===
+int Scenario3::calculateBypassedDamage(const Cand& cand) {
+    int remDef = cand.defenseLevel;
+    int total = 0;
+    auto list = cand.src; // copy for sorting
+    std::sort(list.begin(), list.end(),
+              [](auto& a, auto& b) { return std::get<2>(a) > std::get<2>(b); });
+
+    for (auto& [idx, cnt, dmg] : list) {
+        int blocked = std::min(cnt, remDef);
+        remDef -= blocked;
+        total += (cnt - blocked) * dmg;
+    }
+    return total;
+}
+
+// === Step 5: Fire missiles, log, apply blocking, return damage ===
+int Scenario3::executeFire(
+    const std::string& target,
+    Scenario3::Cand& cand,
+    std::vector<FallbackBase>& bases) {
+
+    std::cout << "\n*** Rapid-Fire on '" << target
+              << "' (defense=" << cand.defenseLevel << ") ***\n";
+    int fired=0, blocked=0, damage=0;
+    int remDef = cand.defenseLevel;
+    auto& sources = cand.src;
+    std::sort(sources.begin(), sources.end(),
+              [](auto& a, auto& b) { return std::get<2>(a) > std::get<2>(b); });
+    auto& graph = mapInformation.getCitiesGraphRef();
+
+    for (auto& [idx, cnt, dmg] : sources) {
+        auto& fb = bases[idx];
+        auto basePtr = std::dynamic_pointer_cast<BaseCity>(graph[fb.baseDesc]);
+        int cap = basePtr ? basePtr->getCapacity() : 0;
+        int shots = std::min({fb.inventoryCount, cap, cnt});
+
+        // Log fire details
+        std::cout << "Base '" << fb.baseName << "' fires " << shots
+                  << " x '" << fb.missileType << "' [dmg=" << dmg << "] via path:";
+        for (auto& step : getPathCities(fb, target)) std::cout << " " << step;
+        std::cout << "\n";
+
+        for (int i = 0; i < shots; ++i) {
+            if (remDef > 0) {
+                blocked++; remDef--; }
+            else { damage += dmg; }
+            fired++;
+        }
+
+        // Update state
+        fb.inventoryCount -= shots;
+        if (basePtr) basePtr->setCapacity(cap - shots);
     }
 
-    std::cout << "Summary: Fired=" << totalFired << ", Blocked=" << totalBlocked
-              << ", Bypassed=" << (totalFired - totalBlocked)
-              << ", DamageDone=" << bestBypassedDamage << "\n";
-  }
+    std::cout << "Summary: Fired=" << fired
+              << ", Blocked=" << blocked
+              << ", Bypassed=" << (fired - blocked)
+              << ", DamageDone=" << damage << "\n";
+    return damage;
+}
 
-  std::cout << "\n**** Fallback total damage: " << totalDamage << " ****\n";
+// === Utility: get inventory count by type ===
+int Scenario3::getInventoryCount(const std::string& type) {
+    if (type == "B2") return inventory.B2;
+    if (type == "C1") return inventory.C1;
+    if (type == "B1") return inventory.B1;
+    if (type == "C2") return inventory.C2;
+    return 0;
+}
+
+// === Utility: retrieve path cities for logging ===
+std::vector<std::string> Scenario3::getPathCities(
+    const FallbackBase& fb, const std::string& target) {
+    auto& graph = mapInformation.getCitiesGraphRef();
+    for (auto& p : fb.paths) {
+        if (graph[p.target]->getName() == target) return p.cities;
+    }
+    return {};
 }
