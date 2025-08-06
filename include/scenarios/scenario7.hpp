@@ -14,7 +14,7 @@ public:
     void findPaths();
     void buildMissilePathMap();
     void solve() override;
-    int findMinimumCost(std::map<std::string, int> &usedMissiles);
+    int findMinimumCost(std::unordered_map<std::string, std::pair<int, double>> &pr, std::map<std::string, int> &usedMissiles);
     void attack();
 
 private:
@@ -30,13 +30,10 @@ private:
 
 private:
     Inventory inventory;
-    std::unordered_map<std::string, std::pair<int, double>> pr;
+    std::unordered_map<std::string, std::pair<int, double>> missilePrice;
     int desiredDamage;
     std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
     std::vector<PathInfo> paths;
-
-public:
-    
 };
