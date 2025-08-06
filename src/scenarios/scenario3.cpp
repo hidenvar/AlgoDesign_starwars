@@ -303,9 +303,8 @@ void Scenario3::attackFallbackPhase() {
     std::vector<PathInfo> paths;
   };
 
-
   std::vector<FallbackBase> fallbackBases;
-  const std::vector<std::string> missileTypes = {"B2", "C1", "B1", "C2"};
+  const std::vector<std::string> missileTypes = {"B2", "C1", "B1", "C2"}; // ordered by priority
   for (const auto& mtypeStr : missileTypes) {
     int inv = (mtypeStr == "B2"   ? inventory.B2
                : mtypeStr == "C1" ? inventory.C1
@@ -338,9 +337,7 @@ void Scenario3::attackFallbackPhase() {
     }
   }
 
-  // --- rapid‐fire
   while (true) {
-    // check if any missiles remain
     bool missilesLeft = false;
     for (auto& fb : fallbackBases) {
       if (fb.inventoryCount > 0) {
@@ -350,15 +347,12 @@ void Scenario3::attackFallbackPhase() {
     }
     if (!missilesLeft) break;
 
-    // candidate struct records each source's count and its damage
     struct Cand {
       int defenseLevel = 0;
-      // for each contributing base: (fallbackBases index, missiles possible)
-      std::vector<std::pair<int, int>> src;
+      std::vector<std::tuple<int, int, int>> src;  // (fb_idx, count, damage)
     };
     std::unordered_map<std::string, Cand> candidates;
 
-    // 1) collect per‐type firing potential
     for (int i = 0; i < (int)fallbackBases.size(); ++i) {
       auto& fb = fallbackBases[i];
       if (fb.inventoryCount == 0) continue;
@@ -373,7 +367,6 @@ void Scenario3::attackFallbackPhase() {
         if (canFire <= 0) continue;
 
         auto& cd = candidates[tgtName];
-        // record defense only once
         if (cd.defenseLevel == 0) {
           auto cit = cities.find(tgtName);
           if (cit != cities.end()) {
@@ -382,25 +375,31 @@ void Scenario3::attackFallbackPhase() {
             cd.defenseLevel = tgtCity ? tgtCity->getDefenseLevel() : 0;
           }
         }
-        cd.src.emplace_back(i, canFire);
+        cd.src.emplace_back(i, canFire, fb.damagePerMissile);
       }
     }
     if (candidates.empty()) break;
 
-    // 2) pick the target with highest *total bypassed damage*
     std::string bestTarget;
     int bestBypassedDamage = 0;
+
     for (auto& [tgtName, cd] : candidates) {
       int totalBypassedDamage = 0;
-      // sum over each missile source: (shots beyond defense) * damage
-      int shotsLeftToBlock = cd.defenseLevel;
-      for (auto& [idx, cnt] : cd.src) {
-        auto& fb = fallbackBases[idx];
-        int blocked = std::min(cnt, shotsLeftToBlock);
-        shotsLeftToBlock -= blocked;
+      int remainingDefense = cd.defenseLevel;
+
+      std::vector<std::tuple<int, int, int>> sortedSrc = cd.src;
+      std::sort(sortedSrc.begin(), sortedSrc.end(),
+                [](auto& a, auto& b) {
+                  return std::get<2>(a) > std::get<2>(b); // sort by damage descending
+                });
+
+      for (auto& [idx, cnt, dmg] : sortedSrc) {
+        int blocked = std::min(cnt, remainingDefense);
+        remainingDefense -= blocked;
         int passed = cnt - blocked;
-        totalBypassedDamage += passed * fb.damagePerMissile;
+        totalBypassedDamage += passed * dmg;
       }
+
       if (totalBypassedDamage > bestBypassedDamage) {
         bestBypassedDamage = totalBypassedDamage;
         bestTarget = tgtName;
@@ -412,14 +411,20 @@ void Scenario3::attackFallbackPhase() {
     std::cout << "\n*** Rapid-Fire on '" << bestTarget
               << "' (defense=" << chosen.defenseLevel << ") ***\n";
 
-    // 3) simulate firing each source in turn, logging detailed damage
+    // sort firing order by damage again
+    std::sort(chosen.src.begin(), chosen.src.end(),
+              [](auto& a, auto& b) {
+                return std::get<2>(a) > std::get<2>(b); // sort by damage descending
+              });
+
     int totalFired = 0;
     int totalBlocked = 0;
-    for (auto& [idx, cnt] : chosen.src) {
+    int remainingDefense = chosen.defenseLevel;
+
+    for (auto& [idx, cnt, dmg] : chosen.src) {
       auto& fb = fallbackBases[idx];
       if (fb.inventoryCount == 0) continue;
 
-      // find matching path for logging
       auto pathIt = std::find_if(
           fb.paths.begin(), fb.paths.end(),
           [&](auto& p) { return graph[p.target]->getName() == bestTarget; });
@@ -435,17 +440,16 @@ void Scenario3::attackFallbackPhase() {
       for (auto& step : pathIt->cities) std::cout << " " << step;
       std::cout << "\n";
 
-      // simulate each missile
       for (int k = 0; k < fireNow; ++k) {
-        if (totalBlocked < chosen.defenseLevel) {
+        if (remainingDefense > 0) {
           totalBlocked++;
+          remainingDefense--;
         } else {
           totalDamage += fb.damagePerMissile;
         }
         totalFired++;
       }
 
-      // update state
       fb.inventoryCount -= fireNow;
       basePtr->setCapacity(baseCap - fireNow);
     }
