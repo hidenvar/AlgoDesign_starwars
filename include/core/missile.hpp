@@ -11,6 +11,8 @@ class Missile {
     int getDestruction() const;
     int getStealth() const;
     MissileType getType() const;
+    std::string getTypeString() const;
+    
   private:
       std::string name;
       int overalDistance;
