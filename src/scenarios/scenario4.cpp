@@ -4,6 +4,7 @@
 #include <iostream>
 #include <queue>
 #include <iomanip> // for std::setprecision
+#include "target_city.hpp"
 
 Scenario4::Scenario4(Graph &g) : Scenario(g) {}
 
@@ -142,34 +143,59 @@ void Scenario4::findPaths()
 
 void Scenario4::buildPaths()
 {
+    missilePathMap.clear();
+
     for (const auto &path : paths)
     {
-        // A type missiles path recognition
+        // Helper lambda to insert if better
+        auto insertOrUpdate = [&](const std::string &key, Graph::VertexDescriptor base,
+                                  const PathInfo &candidate)
+        {
+            auto &basePaths = missilePathMap[key][base];
+            if (basePaths.empty() || key.find("revealed") != std::string::npos)
+            {
+                // No path stored yet, add candidate
+                basePaths.push_back(candidate);
+            }
+            else
+            {
+                // Compare candidate with stored path, keep the better one
+                const auto &stored = basePaths.front();
+
+                if (candidate.spyCount < stored.spyCount)
+                {
+                    basePaths[0] = candidate;
+                }
+            }
+        };
+
+        Graph::VertexDescriptor base = path.base;
+
+        // A type missiles
         if (path.totalDistance <= 2500 && path.maxGap <= 500)
         {
-            missilePathMap[path.spyCount < 3 ? "A1 safe" : "A1 revealed"].push_back(path);
-            missilePathMap[path.spyCount < 2 ? "A2 safe" : "A2 revealed"].push_back(path);
-            missilePathMap[path.spyCount < 4 ? "A3 safe" : "A3 revealed"].push_back(path);
+            insertOrUpdate(path.spyCount < 3 ? "A1 safe" : "A1 revealed", base, path);
+            insertOrUpdate(path.spyCount < 2 ? "A2 safe" : "A2 revealed", base, path);
+            insertOrUpdate(path.spyCount < 4 ? "A3 safe" : "A3 revealed", base, path);
         }
 
-        // B type missiles path recognition
+        // B type missiles
         if (path.totalDistance <= 5000 && path.maxGap <= 500)
         {
-            missilePathMap[path.spyCount < 2 ? "B1 safe" : "B1 revealed"].push_back(path);
-            missilePathMap[path.spyCount < 0 ? "B2 safe" : "B2 revealed"].push_back(path);
+            insertOrUpdate(path.spyCount < 2 ? "B1 safe" : "B1 revealed", base, path);
+            insertOrUpdate(path.spyCount < 0 ? "B2 safe" : "B2 revealed", base, path);
         }
 
-        // C1 type missiles path recognition
+        // C1 type missiles
         if (path.totalDistance <= 3000 && path.maxGap <= 700)
         {
-            missilePathMap[path.spyCount < 2 ? "C1 safe" : "C1 revealed"].push_back(path);
+            insertOrUpdate(path.spyCount < 2 ? "C1 safe" : "C1 revealed", base, path);
         }
 
-        // C2 type missile path recognition
-
+        // C2 type missiles
         if (path.totalDistance <= 2900 && path.maxGap <= 900)
         {
-            missilePathMap[path.spyCount < 1 ? "C2 safe" : "C2 revealed"].push_back(path);
+            insertOrUpdate(path.spyCount < 1 ? "C2 safe" : "C2 revealed", base, path);
         }
     }
 }
@@ -177,37 +203,212 @@ void Scenario4::buildPaths()
 void Scenario4::attack()
 {
     int totalDamage = 0;
-    const auto& citiesGraph = Scenario::mapInformation.getCitiesGraph();
-    
-    for (const auto& base : baseVertices) {
-        
-        const auto& baseCity = citiesGraph[base];
+    const auto &citiesGraph = Scenario::mapInformation.getCitiesGraph();
+    const auto &nameToDesc = mapInformation.getCitiesVertex();
+
+    struct FallbackBase
+    {
+        Graph::VertexDescriptor base;
+        std::string baseName;
+        std::unordered_map<std::string, std::pair<int, int>> missileInventory;
+        std::vector<PathInfo> paths;
+    };
+    std::vector<FallbackBase> fallbackBases;
+
+    for (const auto &base : baseVertices)
+    {
+
+        const auto &baseCity = citiesGraph[base];
         BaseCity *baseCityPtr = dynamic_cast<BaseCity *>(baseCity.get());
-        
+
         if (!baseCityPtr)
             continue;
 
+        std::unordered_map<std::string, std::pair<int, int>> exposedMissiles;
 
-        for (const auto& [missile, count] : baseCityPtr->getMissiles()) {
-            const auto& paths = missilePathMap[missile.getTypeString() + " safe"];
-            if (paths.empty()) {
-                continue;
+        for (const auto &[missile, count] : baseCityPtr->getMissiles())
+        {
+            const auto &missileType = missile.getTypeString();
+            const auto &safePaths = missilePathMap[missileType + " safe"][base];
+            const auto &revealedPaths = missilePathMap[missileType + " revealed"][base];
+
+            if (!safePaths.empty())
+            {
+
+                // Use the first path for the attack
+                const auto &path = safePaths.front();
+                std::cout << "Launching " << count << " " << missile.getType() << " missiles using this path:\n";
+                for (const auto &cityName : path.cities)
+                {
+                    std::cout << cityName << " -> ";
+                }
+                std::cout << "END\n";
+
+                int damage = missile.getDestruction() * count;
+                std::cout << "Damage of this attack: " << damage << "\n";
+                totalDamage += damage;
             }
 
-            // Use the first path for the attack
-            const auto& path = paths.front();
-            std::cout << "Launching " << count << " " << missile.getType() << " missiles using this path:\n";
-            for (const auto& cityName : path.cities) {
-                std::cout << cityName << " -> ";
+            if (!revealedPaths.empty())
+            {
+                exposedMissiles[missileType].first = count;
+                exposedMissiles[missileType].second = missile.getDestruction();
             }
-            std::cout << "END\n";
+        }
 
-            int damage = missile.getDestruction() * count;
-            std::cout << "Damage of this attack: " << damage << "\n";
-            totalDamage += damage;
+        if (!exposedMissiles.empty())
+        {
+            fallbackBases.push_back({base, baseCity->getName(), std::move(exposedMissiles), paths});
         }
     }
-    std::cout << "Total damage caused by all attacks: " << totalDamage << "\n";
+
+    while (true)
+    {
+        bool missilesLeft = false;
+        for (const auto &fb : fallbackBases)
+        {
+            for (const auto &[_, data] : fb.missileInventory)
+            {
+                if (data.first > 0)
+                {
+                    missilesLeft = true;
+                    break;
+                }
+            }
+            if (missilesLeft)
+                break;
+        }
+        if (!missilesLeft)
+            break;
+
+        std::unordered_map<std::string, int> totalMissilesToTarget;
+        std::unordered_map<std::string, int> totalDamageToTarget;
+        std::unordered_map<std::string, std::vector<int>> baseIndexes;
+
+        for (size_t i = 0; i < fallbackBases.size(); ++i)
+        {
+            const auto &fb = fallbackBases[i];
+            for (const auto &path : fb.paths)
+            {
+                std::string targetName = citiesGraph[path.target]->getName();
+                int totalMissileCount = 0, totalDamage = 0;
+
+                for (const auto &[type, data] : fb.missileInventory)
+                {
+                    totalMissileCount += data.first;
+                    totalDamage += data.first * data.second;
+                }
+
+                if (totalMissileCount > 0)
+                {
+                    totalMissilesToTarget[targetName] += totalMissileCount;
+                    totalDamageToTarget[targetName] += totalDamage;
+                    baseIndexes[targetName].push_back(i);
+                }
+            }
+        }
+
+        if (totalMissilesToTarget.empty())
+            break;
+
+        std::string bestTarget;
+        int bestTargetDefense = 0;
+        int maxBypassedDamage = -1;
+
+        for (const auto &[targetName, count] : totalMissilesToTarget)
+        {
+            auto it = nameToDesc.find(targetName);
+            if (it == nameToDesc.end())
+                continue;
+
+            auto tgtCity = std::dynamic_pointer_cast<TargetCity>(citiesGraph[it->second]);
+            int defense = tgtCity->getDefenseLevel();
+            int bypassed = std::max(0, count - defense);
+            int damage = totalDamageToTarget[targetName];
+            int bypassedDamage = (count > 0) ? (bypassed * damage / count) : 0;
+
+            if (bypassedDamage > maxBypassedDamage)
+            {
+                maxBypassedDamage = bypassedDamage;
+                bestTarget = targetName;
+                bestTargetDefense = defense;
+            }
+        }
+
+        std::cout << "\n*** Rapid-Fire on \"" << bestTarget << "\" ***\n";
+        std::cout << "defense: " << bestTargetDefense << "\n";
+
+        int totalFired = 0, totalBlocked = 0;
+        std::unordered_map<std::string, int> blockedByType;
+
+        for (int idx : baseIndexes[bestTarget])
+        {
+            auto &fb = fallbackBases[idx];
+            PathInfo *pathToUse = nullptr;
+            for (auto &p : fb.paths)
+            {
+                if (citiesGraph[p.target]->getName() == bestTarget)
+                {
+                    pathToUse = &p;
+                    break;
+                }
+            }
+            if (!pathToUse)
+                continue;
+
+            std::cout << "Base " << fb.baseName << " -> ";
+            for (const auto &city : pathToUse->cities)
+                std::cout << city << " ";
+            std::cout << "\n";
+
+            std::vector<std::pair<std::string, std::pair<int, int>>> sortedMissiles(fb.missileInventory.begin(), fb.missileInventory.end());
+            std::sort(sortedMissiles.begin(), sortedMissiles.end(), [](const auto &a, const auto &b)
+                      {
+                          return a.second.second > b.second.second; // sort by damage descending
+                      });
+
+            int baseFired = 0;
+            for (auto &[type, data] : sortedMissiles)
+            {
+                int count = data.first;
+                int damage = data.second;
+                if (count == 0)
+                    continue;
+
+                std::cout << "  - " << count << " x " << type << "\n";
+
+                for (int i = 0; i < count; ++i)
+                {
+                    if (totalBlocked < bestTargetDefense)
+                    {
+                        totalBlocked++;
+                        blockedByType[type]++;
+                    }
+                    else
+                    {
+                        totalDamage += damage;
+                        std::cout << "  ✅ Hit with " << type << " (+" << damage << " damage)\n";
+                    }
+                    totalFired++;
+                }
+
+                baseFired += count;
+                fb.missileInventory[type].first = 0;
+            }
+
+            if (baseFired == 0)
+                std::cout << "  (no missiles left)\n";
+        }
+
+        std::cout << "total Missiles Fired: " << totalFired << "\n";
+        std::cout << "blocked: " << totalBlocked << "\n";
+        std::cout << "bypassed: " << totalFired - totalBlocked << "\n";
+        std::cout << "blocked summary:\n";
+        for (const auto &[type, cnt] : blockedByType)
+            std::cout << "  - " << type << ": " << cnt << "\n";
+    }
+
+    std::cout << "\n************\nTotal Damage: " << totalDamage << "\n";
 }
 
 void Scenario4::solve()
@@ -219,11 +420,11 @@ void Scenario4::solve()
     // printPathInfo();
 }
 
+
 void Scenario4::printPathInfo() const
 {
     std::cout << "=== Missile Path Info by Type ===\n";
 
-    // All expected missile path categories
     const std::vector<std::string> expectedCategories = {
         "A1 safe", "A1 revealed",
         "A2 safe", "A2 revealed",
@@ -244,18 +445,24 @@ void Scenario4::printPathInfo() const
         }
         else
         {
-            for (const auto &path : it->second)
+            // it->second is unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>>
+            for (const auto &[baseVertex, paths] : it->second)
             {
-                std::cout << "  Path: ";
-                for (const auto &cityName : path.cities)
-                {
-                    std::cout << cityName << " -> ";
-                }
-                std::cout << "END\n";
+                std::cout << "  Base vertex: " << baseVertex << "\n";
 
-                std::cout << "    Spy Count: " << path.spyCount
-                          << ", Max Gap: " << std::fixed << std::setprecision(2) << path.maxGap
-                          << ", Total Distance: " << path.totalDistance << "\n";
+                for (const auto &path : paths)
+                {
+                    std::cout << "    Path: ";
+                    for (const auto &cityName : path.cities)
+                    {
+                        std::cout << cityName << " -> ";
+                    }
+                    std::cout << "END\n";
+
+                    std::cout << "      Spy Count: " << path.spyCount
+                              << ", Max Gap: " << std::fixed << std::setprecision(2) << path.maxGap
+                              << ", Total Distance: " << path.totalDistance << "\n";
+                }
             }
         }
         std::cout << "-------------------------\n";

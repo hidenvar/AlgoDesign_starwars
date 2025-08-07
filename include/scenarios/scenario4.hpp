@@ -9,7 +9,6 @@ public:
     Scenario4(Graph &g);
     void solve() override;
 
-
 private:
     void findPaths();
     void buildPaths();
@@ -31,5 +30,5 @@ private:
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
     std::vector<PathInfo> paths;
-    std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap; // map each missile to a revealed or a safe path
+    std::unordered_map<std::string, std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>>> missilePathMap; // map each missile to a revealed or a safe path
 };
