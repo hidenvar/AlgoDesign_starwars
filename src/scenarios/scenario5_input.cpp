@@ -57,13 +57,10 @@ void Scenario5Input::createCities(std::istream& input, Graph& citiesGraph) {
           std::make_shared<City>(name, country, lat, lon, type, sp);
       citiesGraph.addCity(normalCity);
     } else if (type == CityType::BASE) {
-      int capacity;
-      iss >> capacity;
       std::vector<std::pair<Missile, int>> emptymissile;
       emptymissile.clear();
       auto baseCity = std::make_shared<BaseCity>(name, country, lat, lon, type,
                                                  sp, emptymissile);
-      baseCity->setCapacity(capacity);
       citiesGraph.addCity(baseCity);
     } else if (type == CityType::TARGET) {
       int defenseLevel;
