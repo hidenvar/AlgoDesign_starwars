@@ -8,6 +8,7 @@
 #include "scenario3.hpp"
 #include "scenario3_input.hpp"
 #include "target_city.hpp"
+#include "scenario5_input.hpp"
 
 int main(int argc, char* argv[]) {
   if (argc < 2) return 0;
@@ -72,5 +73,22 @@ int main(int argc, char* argv[]) {
       printPaths("C2 revealed", vecC2r);
 
       break;
+      case 4:
+      break;
+
+      case 5:
+      Inventory in;
+      Scenario5Input::fillInventory(std::cin, in);
+      Scenario5Input::createCities(std::cin, g);
+      // TODO: solve for night 1 here
+      Scenario5Input::createCities(std::cin, g);
+      // TODO: solve for night 2 here
+      Scenario5Input::createCities(std::cin, g);
+      // TODO: solve for night 3 here
+      Scenario5Input::createCities(std::cin, g);
+      // TODO: solve for night 4 here
+      Scenario5Input::createCities(std::cin, g);
+      // TODO: solve for night 5 here
+
   }
 }
