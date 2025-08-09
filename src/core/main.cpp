@@ -7,8 +7,8 @@
 #include "scenario1.hpp"
 #include "scenario3.hpp"
 #include "scenario3_input.hpp"
-#include "target_city.hpp"
 #include "scenario5_input.hpp"
+#include "target_city.hpp"
 
 int main(int argc, char* argv[]) {
   if (argc < 2) return 0;
@@ -16,20 +16,22 @@ int main(int argc, char* argv[]) {
 
   int scenario = std::stoi(argv[1]);
   switch (scenario) {
-    case 1:
+    case 1: {
       // printAllCities();
       InputHandler::loadFromFile(g);
       Scenario1(g).solve();
       // s.solve();
       break;
+    }
 
-    case 3:
+    case 3: {
       Inventory in;
       Scenario3Input::loadFromFile(g, in);
       std::cout << "we have :\n";
       std::cout << "A1: " << in.A1 << " A2: " << in.A2 << " A3: " << in.A3
                 << " B1: " << in.B1 << " B2: " << in.B2 << " C1: " << in.C1
                 << " C2: " << in.C2 << " D1: " << in.D1 << '\n';
+
       Scenario3 s(g, in);
       s.solve();
       auto refmap = s.getMissilePathMap();
@@ -73,10 +75,13 @@ int main(int argc, char* argv[]) {
       printPaths("C2 revealed", vecC2r);
 
       break;
-      case 4:
-      break;
+    }
 
-      case 5:
+    case 4: {
+      break;
+    }
+
+    case 5: {
       Inventory in;
       Scenario5Input::fillInventory(std::cin, in);
       Scenario5Input::createCities(std::cin, g);
@@ -89,6 +94,7 @@ int main(int argc, char* argv[]) {
       // TODO: solve for night 4 here
       Scenario5Input::createCities(std::cin, g);
       // TODO: solve for night 5 here
-
+      break;
+    }
   }
 }
