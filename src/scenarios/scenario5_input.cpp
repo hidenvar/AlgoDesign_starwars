@@ -71,3 +71,16 @@ void Scenario5Input::createCities(std::istream& input, Graph& citiesGraph) {
     }
   }
 }
+
+void Scenario5Input::updateSpies(std::istream& input, Graph& initializedGraph){
+  auto cities = initializedGraph.getCitiesGraph();
+  std::string line;
+  while (std::getline(input, line)) {
+    if (line.empty()) break;
+  std::istringstream iss(line);
+  std::string name;
+  iss >> name;
+  int num;
+  iss >> num;
+  initializedGraph.updateSpyCount(name, num);
+}
