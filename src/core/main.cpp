@@ -10,41 +10,8 @@
 #include "scenario5_input.hpp"
 #include "target_city.hpp"
 
-int main(int argc, char* argv[]) {
-  if (argc < 2) return 0;
-  Graph g;
 
-  int scenario = std::stoi(argv[1]);
-  switch (scenario) {
-    case 1: {
-      // printAllCities();
-      InputHandler::loadFromFile(g);
-      Scenario1(g).solve();
-      // s.solve();
-      break;
-    }
-
-    case 3: {
-      Inventory in;
-      Scenario3Input::loadFromFile(g, in);
-      std::cout << "we have :\n";
-      std::cout << "A1: " << in.A1 << " A2: " << in.A2 << " A3: " << in.A3
-                << " B1: " << in.B1 << " B2: " << in.B2 << " C1: " << in.C1
-                << " C2: " << in.C2 << " D1: " << in.D1 << '\n';
-
-      Scenario3 s(g, in);
-      s.solve();
-      auto refmap = s.getMissilePathMap();
-      auto vecB1s = refmap["B1 safe"];
-      auto vecB1r = refmap["B1 revealed"];
-      auto vecB2s = refmap["B2 safe"];
-      auto vecB2r = refmap["B2 revealed"];
-      auto vecC1s = refmap["C1 safe"];
-      auto vecC1r = refmap["C1 revealed"];
-      auto vecC2s = refmap["C2 safe"];
-      auto vecC2r = refmap["C2 revealed"];
-
-      auto printPaths = [](const std::string& label,
+auto printPaths = [](const std::string& label,
                            const std::vector<Scenario3::PathInfo>& vec) {
         std::cout << label << " [" << vec.size() << " paths]:\n";
         for (const auto& path : vec) {
@@ -65,6 +32,44 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
       };
 
+void logInventory(Inventory in) {
+  std::cout << "inventory: \n";
+  std::cout << "A1: " << in.A1 << " A2: " << in.A2 << " A3: " << in.A3
+            << " B1: " << in.B1 << " B2: " << in.B2 << " C1: " << in.C1
+            << " C2: " << in.C2 << " D1: " << in.D1 << '\n';
+}
+
+
+int main(int argc, char* argv[]) {
+  if (argc < 2) return 0;
+  Graph g;
+
+  int scenario = std::stoi(argv[1]);
+  switch (scenario) {
+    case 1: {
+      // printAllCities();
+      InputHandler::loadFromFile(g);
+      Scenario1(g).solve();
+      // s.solve();
+      break;
+    }
+
+    case 3: {
+      Inventory in;
+      Scenario3Input::loadFromFile(g, in);
+
+      Scenario3 s(g, in);
+      s.solve();
+      auto refmap = s.getMissilePathMap();
+      auto vecB1s = refmap["B1 safe"];
+      auto vecB1r = refmap["B1 revealed"];
+      auto vecB2s = refmap["B2 safe"];
+      auto vecB2r = refmap["B2 revealed"];
+      auto vecC1s = refmap["C1 safe"];
+      auto vecC1r = refmap["C1 revealed"];
+      auto vecC2s = refmap["C2 safe"];
+      auto vecC2r = refmap["C2 revealed"];
+
       printPaths("B1 safe", vecB1s);
       printPaths("B1 revealed", vecB1r);
       printPaths("B2 safe", vecB2s);
@@ -84,6 +89,8 @@ int main(int argc, char* argv[]) {
     case 5: {
       Inventory in;
       Scenario5Input::fillInventory(std::cin, in);
+      logInventory(in);
+      
       Scenario5Input::createCities(std::cin, g);
       // TODO: solve for night 1 here
       Scenario5Input::updateSpies(std::cin, g);
