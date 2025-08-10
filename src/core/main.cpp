@@ -8,6 +8,8 @@
 #include "scenario3.hpp"
 #include "scenario3_input.hpp"
 #include "scenario5_input.hpp"
+#include "scenario5.hpp"
+#include "iomanip"
 #include "target_city.hpp"
 
 
@@ -38,6 +40,54 @@ void logInventory(Inventory in) {
             << " B1: " << in.B1 << " B2: " << in.B2 << " C1: " << in.C1
             << " C2: " << in.C2 << " D1: " << in.D1 << '\n';
 }
+
+void printCities(const Graph& scenarioGraph) {
+    auto graph = scenarioGraph.getCitiesGraph();
+
+    std::cout << std::left
+              << std::setw(12) << "Name"
+              << std::setw(12) << "Country"
+              << std::setw(10) << "Lat"
+              << std::setw(10) << "Lon"
+              << std::setw(10) << "Type"
+              << std::setw(6)  << "SP"
+              << std::setw(14) << "Extra Info"
+              << "\n";
+
+    std::cout << std::string(74, '-') << "\n";
+
+    for (auto vd : boost::make_iterator_range(boost::vertices(graph))) {
+        auto cityPtr = graph[vd];
+
+        if (!cityPtr) continue;
+
+        std::string typeStr;
+        switch (cityPtr->getType()) {
+            case CityType::NORMAL: typeStr = "NORMAL"; break;
+            case CityType::BASE:   typeStr = "BASE";   break;
+            case CityType::TARGET: typeStr = "TARGET"; break;
+            default:               typeStr = "UNKNOWN"; break;
+        }
+
+        std::string extraInfo = "-";
+
+        if (auto base = std::dynamic_pointer_cast<BaseCity>(cityPtr)) {
+            extraInfo = "Missiles: " + std::to_string(base->getMissiles().size());
+        } else if (auto target = std::dynamic_pointer_cast<TargetCity>(cityPtr)) {
+            extraInfo = "Defense: " + std::to_string(target->getDefenseLevel());
+        }
+
+        std::cout << std::setw(12) << cityPtr->getName()
+                  << std::setw(12) << cityPtr->getCountry()
+                  << std::setw(10) << cityPtr->getLatitude()
+                  << std::setw(10) << cityPtr->getLongitude()
+                  << std::setw(10) << typeStr
+                  << std::setw(6)  << cityPtr->hasSpy()
+                  << std::setw(14) << extraInfo
+                  << "\n";
+    }
+}
+
 
 
 int main(int argc, char* argv[]) {
@@ -90,16 +140,23 @@ int main(int argc, char* argv[]) {
       Inventory in;
       Scenario5Input::fillInventory(std::cin, in);
       logInventory(in);
-      
+      Scenario5 s(g, in);
+      s.initialize();
+      printCities(g);
       Scenario5Input::createCities(std::cin, g);
+      printCities(g);
       // TODO: solve for night 1 here
       Scenario5Input::updateSpies(std::cin, g);
+      printCities(g);
       // TODO: solve for night 2 here
       Scenario5Input::updateSpies(std::cin, g);
+      printCities(g);
       // TODO: solve for night 3 here
       Scenario5Input::updateSpies(std::cin, g);
+      printCities(g);
       // TODO: solve for night 4 here
       Scenario5Input::updateSpies(std::cin, g);
+      printCities(g);
       // TODO: solve for night 5 here
       break;
     }
