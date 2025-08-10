@@ -86,13 +86,13 @@ int main(int argc, char* argv[]) {
       Scenario5Input::fillInventory(std::cin, in);
       Scenario5Input::createCities(std::cin, g);
       // TODO: solve for night 1 here
-      Scenario5Input::createCities(std::cin, g);
+      Scenario5Input::updateSpies(std::cin, g);
       // TODO: solve for night 2 here
-      Scenario5Input::createCities(std::cin, g);
+      Scenario5Input::updateSpies(std::cin, g);
       // TODO: solve for night 3 here
-      Scenario5Input::createCities(std::cin, g);
+      Scenario5Input::updateSpies(std::cin, g);
       // TODO: solve for night 4 here
-      Scenario5Input::createCities(std::cin, g);
+      Scenario5Input::updateSpies(std::cin, g);
       // TODO: solve for night 5 here
       break;
     }
