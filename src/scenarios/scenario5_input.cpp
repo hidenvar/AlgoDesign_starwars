@@ -84,3 +84,4 @@ void Scenario5Input::updateSpies(std::istream& input, Graph& initializedGraph){
   iss >> num;
   initializedGraph.updateSpyCount(name, num);
 }
+}
