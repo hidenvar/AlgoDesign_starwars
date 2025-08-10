@@ -56,6 +56,17 @@ void Graph::setDistanceBetweenCities(const std::string& a, const std::string& b,
     }
 }
 
+void Graph::updateSpyCount(const std::string& cityName, int newSpyCount) {
+    auto it = cityNameToVertex.find(cityName);
+    
+    if (it == cityNameToVertex.end()) {
+        throw std::runtime_error("City name not found.");
+    }
+    
+    VertexDescriptor v = it->second;
+    citiesGraph[v]-> setSpy(newSpyCount);
+}
+
 
 Graph::GraphType Graph::getCitiesGraph() const { return citiesGraph; }
 Graph::GraphType& Graph::getCitiesGraphRef() {

@@ -27,6 +27,7 @@ class Graph {
   void connectCities(std::string& a, std::string& b);
   double calculateDistance(const City& a, const City& b) const;
   void setDistanceBetweenCities(const std::string& a, const std::string& b, double distance);
+  void updateSpyCount(const std::string& cityName, int newSpyCount);
   
  private:
   GraphType citiesGraph;
