@@ -14,6 +14,7 @@ class Scenario5 : public Scenario {
  
   void initialize();
   void findPaths();
+  void solve() override;
 
   struct PathInfo {
     Graph::VertexDescriptor base;
