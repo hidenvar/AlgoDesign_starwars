@@ -40,10 +40,12 @@ class Scenario5 : public Scenario {
     }
   };
 
+  void buildMissilePathMap();
+
   private:
   Inventory inventory;
   std::vector<PathInfo> paths; 
   std::vector<Graph::VertexDescriptor> baseVertices;
   std::vector<Graph::VertexDescriptor> targetVertices;
-
+  std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
 };
