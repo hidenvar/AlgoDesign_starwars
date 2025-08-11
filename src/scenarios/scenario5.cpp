@@ -1,6 +1,7 @@
 #include <queue>
 #include "scenario5.hpp"
 #include "missile_factory.hpp"
+#include "iostream"
 
 
 Scenario5::Scenario5(Graph g, Inventory i): Scenario(g){
@@ -163,4 +164,61 @@ void Scenario5::buildMissilePathMap() {
       }
     }
   }
+}
+
+void Scenario5::logMissilePaths(std::string logType) {
+  auto graph = mapInformation.getCitiesGraph();
+
+  if(logType == "verbose"){
+  for (const auto& [category, pathList] : missilePathMap) {
+    std::cout << "\n===== " << category << " ===== (" << pathList.size()
+              << " paths)\n";
+
+    for (const auto& path : pathList) {
+      std::string baseName = graph[path.base]->getName();
+      std::string targetName = graph[path.target]->getName();
+
+      std::cout << "\nPath: " << baseName << " -> " << targetName
+                << " | Distance: " << path.distance
+                << " | Max Gap: " << path.max_gap
+                << " | Spies: " << path.spyCount << "\n";
+
+      std::cout << "Cities: ";
+      for (const auto& city : path.cities) {
+        std::cout << city;
+        // Check if city has spy
+        auto it = mapInformation.getCitiesVertex().find(city);
+        if (it != mapInformation.getCitiesVertex().end()) {
+          auto vertex = it->second;
+          if (graph[vertex]->hasSpy()) {
+            std::cout << "(spy) ";
+          } else {
+            std::cout << " ";
+          }
+        }
+      }
+      std::cout << "\n";
+    }
+  }
+}
+
+  std::cout << "\n======= Summary =======\n";
+  const std::vector<std::string> missileOrder = {
+        "A1 safe", "A1 revealed",
+        "A2 safe", "A2 revealed",
+        "A3 safe", "A3 revealed",
+        "B1 safe", "B1 revealed",
+        "B2 safe", "B2 revealed",
+        "C1 safe", "C1 revealed",
+        "C2 safe", "C2 revealed",
+        "D1 safe", "D1 revealed"
+    };
+  for (const auto& category : missileOrder) {
+        auto it = missilePathMap.find(category);
+        if (it != missilePathMap.end()) {
+            std::cout << category << ": " << it->second.size() << " paths\n";
+        } else {
+            std::cout << category << ": 0 paths\n";
+        }
+    }
 }

@@ -42,6 +42,9 @@ class Scenario5 : public Scenario {
 
   void buildMissilePathMap();
 
+  // normal vs verbose
+  void logMissilePaths(std::string logType = "normal");
+
   private:
   Inventory inventory;
   std::vector<PathInfo> paths; 
