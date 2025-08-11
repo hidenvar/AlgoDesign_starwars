@@ -140,23 +140,33 @@ int main(int argc, char* argv[]) {
       Inventory in;
       Scenario5Input::fillInventory(std::cin, in);
       logInventory(in);
+      Scenario5Input::createCities(std::cin, g);
       Scenario5 s(g, in);
       s.initialize();
-      printCities(g);
-      Scenario5Input::createCities(std::cin, g);
-      printCities(g);
+      s.findPaths();
+      //printCities(g);
+      s.buildMissilePathMap();
+      s.logMissilePaths();
       // TODO: solve for night 1 here
       Scenario5Input::updateSpies(std::cin, g);
-      printCities(g);
+      //printCities(g);
+      s.buildMissilePathMap();
+      s.logMissilePaths();
       // TODO: solve for night 2 here
       Scenario5Input::updateSpies(std::cin, g);
-      printCities(g);
+      //printCities(g);
+      s.buildMissilePathMap();
+      s.logMissilePaths();
       // TODO: solve for night 3 here
       Scenario5Input::updateSpies(std::cin, g);
-      printCities(g);
+      //printCities(g);
+      s.buildMissilePathMap();
+      s.logMissilePaths();
       // TODO: solve for night 4 here
       Scenario5Input::updateSpies(std::cin, g);
-      printCities(g);
+      //printCities(g);
+      s.buildMissilePathMap();
+      s.logMissilePaths();
       // TODO: solve for night 5 here
       break;
     }
