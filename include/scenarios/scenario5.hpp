@@ -23,8 +23,22 @@ class Scenario5 : public Scenario {
     int spyCount;
     double distance;
     double max_gap;
-  };
 
+    void updatePathSpies(Scenario5& scenario) {
+      auto& graph = scenario.mapInformation.getCitiesGraphRef();
+      auto cityVertices = scenario.mapInformation.getCitiesVertex();
+
+      spyCount = 0;
+      for (const auto& cityName : cities) {
+        auto it = cityVertices.find(cityName);
+        if (it != cityVertices.end()) {
+          auto vertex = it->second;
+          auto cityPtr = graph[vertex];
+          spyCount += cityPtr->hasSpy();
+        }
+      }
+    }
+  };
 
   private:
   Inventory inventory;
