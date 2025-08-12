@@ -280,15 +280,6 @@ void Scenario5::attack(int nightIdx) {
       for (const auto& city : it->cities) std::cout << city << " ";
       std::cout << "| Damage: " << pathDamage << "\n";
 
-      // Cleanup if base is destroyed
-      if (baseCityPtr->getCapacity() == 0) {
-        baseVertices.erase(baseIt);
-        removePathsFromAllMissileMaps(baseDesc);
-        paths.erase(std::remove_if(
-                        paths.begin(), paths.end(),
-                        [&](const PathInfo& p) { return p.base == baseDesc; }),
-                    paths.end());
-      }
       nights[nightIdx] = true;
       return;  // return after first successful attack, we are done for this night
     }
@@ -296,16 +287,4 @@ void Scenario5::attack(int nightIdx) {
   std::cout << "No valid safe paths found for any missile type\n";
 
   //TODO: fallback attack, prioritizing targets with least defense
-}
-
-// helper function to remove paths
-void Scenario5::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) {
-    for (auto& [key, paths] : missilePathMap) {
-        paths.erase(
-            std::remove_if(paths.begin(), paths.end(),
-                           [&](const PathInfo& path) {
-                               return path.base == baseDesc;
-                           }),
-            paths.end());
-    }
 }
