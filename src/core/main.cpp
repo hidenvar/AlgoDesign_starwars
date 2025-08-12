@@ -148,26 +148,34 @@ int main(int argc, char* argv[]) {
       s.buildMissilePathMap();
       s.logMissilePaths();
       // TODO: solve for night 1 here
+      s.attack(0);
       Scenario5Input::updateSpies(std::cin, g);
       //printCities(g);
       s.buildMissilePathMap();
       s.logMissilePaths();
       // TODO: solve for night 2 here
+      s.attack(1);
       Scenario5Input::updateSpies(std::cin, g);
       //printCities(g);
       s.buildMissilePathMap();
       s.logMissilePaths();
       // TODO: solve for night 3 here
+      s.attack(2);
       Scenario5Input::updateSpies(std::cin, g);
       //printCities(g);
       s.buildMissilePathMap();
       s.logMissilePaths();
       // TODO: solve for night 4 here
+      s.attack(3);
       Scenario5Input::updateSpies(std::cin, g);
       //printCities(g);
       s.buildMissilePathMap();
       s.logMissilePaths();
       // TODO: solve for night 5 here
+      s.attack(4);
+
+
+      for(auto n : s.nights) std::cout << (n ? "✅" : "❌") << " ";
       break;
     }
   }
