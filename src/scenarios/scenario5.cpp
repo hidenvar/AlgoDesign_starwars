@@ -1,12 +1,15 @@
 #include <queue>
 #include "scenario5.hpp"
 #include "missile_factory.hpp"
-#include "iostream"
+#include <iostream>
+#include "base_city.hpp"
 
 
-Scenario5::Scenario5(Graph g, Inventory i): Scenario(g){
-    inventory = i;
-}
+Scenario5::Scenario5(Graph g, Inventory i) 
+    : Scenario(g),
+      nights(5, false),
+      inventory(i)
+{}
 
 void Scenario5::solve(){
   return;
@@ -220,5 +223,89 @@ void Scenario5::logMissilePaths(std::string logType) {
         } else {
             std::cout << category << ": 0 paths\n";
         }
+    }
+}
+
+// we will first check for weakest missiles safe paths
+// checking safe paths for these missiles, if found instantly shoot and mark night as done
+void Scenario5::attack(int nightIdx) {
+  //int totalDamage = 0;
+  std::cout << "**** Starting safe attack phase *****\n";
+  auto& graph = mapInformation.getCitiesGraphRef();
+
+  // missile priority order
+  std::vector<std::string> missilePriority = {"B2", "C2", "D1", "A2", "B1",
+                                              "C1", "A1", "A3"};
+
+  for (const auto& mtypeStr : missilePriority) {
+    int& count = [&]() -> int& {
+      if (mtypeStr == "A1") return inventory.A1;
+      if (mtypeStr == "A2") return inventory.A2;
+      if (mtypeStr == "A3") return inventory.A3;
+      if (mtypeStr == "B1") return inventory.B1;
+      if (mtypeStr == "B2") return inventory.B2;
+      if (mtypeStr == "C1") return inventory.C1;
+    }();
+
+    // Skip if no missiles of this type available
+    if (count <= 0) continue;
+
+    // get missile information
+    auto mt = getMissileType(mtypeStr);
+    auto missile = MissileFactory::getMissile(mt);
+    int damagePerMissile = missile.getDestruction();
+    auto& missilePaths = missilePathMap[mtypeStr + " safe"];
+
+    // find the first valid path for this missile type
+    for (auto it = missilePaths.begin(); it != missilePaths.end(); ++it) {
+      const auto& baseDesc = it->base;
+
+      // Verify base exists
+      auto baseIt =
+          std::find(baseVertices.begin(), baseVertices.end(), baseDesc);
+      if (baseIt == baseVertices.end()) continue;
+
+      // Verify base is operational
+      auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(graph[baseDesc]);
+      if (!baseCityPtr) continue;
+
+
+      // ATTACK: Shoot exactly 1 missile
+      int used = 1;
+      int pathDamage = damagePerMissile * used;
+      //totalDamage += pathDamage;
+      count -= used;
+      // Print attack details
+      std::cout << "Shot " << used << "x " << mtypeStr << " missile via path: ";
+      for (const auto& city : it->cities) std::cout << city << " ";
+      std::cout << "| Damage: " << pathDamage << "\n";
+
+      // Cleanup if base is destroyed
+      if (baseCityPtr->getCapacity() == 0) {
+        baseVertices.erase(baseIt);
+        removePathsFromAllMissileMaps(baseDesc);
+        paths.erase(std::remove_if(
+                        paths.begin(), paths.end(),
+                        [&](const PathInfo& p) { return p.base == baseDesc; }),
+                    paths.end());
+      }
+      nights[nightIdx] = true;
+      return;  // return after first successful attack, we are done for this night
+    }
+  }
+  std::cout << "No valid safe paths found for any missile type\n";
+
+  //TODO: fallback attack, prioritizing targets with least defense
+}
+
+// helper function to remove paths
+void Scenario5::removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc) {
+    for (auto& [key, paths] : missilePathMap) {
+        paths.erase(
+            std::remove_if(paths.begin(), paths.end(),
+                           [&](const PathInfo& path) {
+                               return path.base == baseDesc;
+                           }),
+            paths.end());
     }
 }

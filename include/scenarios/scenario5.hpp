@@ -44,6 +44,8 @@ class Scenario5 : public Scenario {
 
   // normal vs verbose
   void logMissilePaths(std::string logType = "normal");
+  void attack(int night);
+  std::vector<bool> nights;
 
   private:
   Inventory inventory;
@@ -51,4 +53,6 @@ class Scenario5 : public Scenario {
   std::vector<Graph::VertexDescriptor> baseVertices;
   std::vector<Graph::VertexDescriptor> targetVertices;
   std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
+  void removePathsFromAllMissileMaps(Graph::VertexDescriptor baseDesc);
+
 };
