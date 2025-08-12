@@ -205,7 +205,7 @@ void Scenario1::attack() {
     std::unordered_map<std::string, int> damagePerMissile;
     std::unordered_map<std::string, std::vector<int>> baseIndexes;
 
-    for (int i = 0; i < fallbackBases.size(); ++i) {
+    for (size_t i = 0; i < fallbackBases.size(); ++i) {
       const auto& fb = fallbackBases[i];
       for (const auto& path : fb.paths) {
         std::string targetName = cities[path.target]->getName();
