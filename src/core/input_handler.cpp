@@ -8,7 +8,7 @@
 
 void InputHandler::loadFromFile(Graph &citiesGraph) {
   createCities(std::cin, citiesGraph);
-  makeGraph(std::cin, citiesGraph);
+  //makeGraph(std::cin, citiesGraph);
 }
 
 
@@ -68,7 +68,6 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
       std::istringstream iss(line);
       std::string it1, it2;
       iss >> it1 >> it2;
-      // std::cout << "connnecting... \n";
       citiesGraph.connectCities(it1, it2);
   }
 }
@@ -76,9 +75,9 @@ void InputHandler::makeGraph(std::istream& input, Graph& citiesGraph) {
 
 /*
 input format for each city type
-NORMAL city : name country lat lon type  spyCount
-BASE city : name country lat lon type  spyCount missileTypeCount first_missileTye first_TypeCount seconf_missileTye second_TypeCount
-TARGET city : name country lat lon type  spyCount defence_level
+NORMAL city : name country lat lon type  hasSpy
+BASE city : name country lat lon type  hasSpy missileTypeCount first_missileTye first_TypeCount seconf_missileTye second_TypeCount
+TARGET city : name country lat lon type  hasSpy defence_level
 ... required line break here, cinnected cities below
 city1 city2
 city2 city5
