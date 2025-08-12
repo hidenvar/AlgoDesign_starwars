@@ -4,7 +4,7 @@
 #include "base_city.hpp"
 #include "target_city.hpp"
 #include "scenario1.hpp"
-
+#include "scenario2.hpp"
 
 // void printAllCities(const Graph& graph) {
 //     auto graphData = graph.getCitiesGraph();
@@ -77,6 +77,11 @@ int main(int argc, char* argv[]) {
     InputHandler::loadFromFile(g);
 
     int scenario = std::stoi(argv[1]);
-    Scenario1 s(g);
-    s.solve();
+    if (scenario == 1) {
+        Scenario1 s(g);
+        s.solve();
+    } else if (scenario == 2) {
+        Scenario2 s(g);
+        s.solve();
+    }
 }
