@@ -1,7 +1,9 @@
-#include "scenario1.hpp"
 #include <queue>
-#include <boost/graph/adjacency_list.hpp>
 #include<iostream>
+
+#include <boost/graph/adjacency_list.hpp>
+
+#include "scenario1.hpp"
 #include"base_city.hpp"
 
 Scenario1::Scenario1(Graph& g) : Scenario(g) {}

@@ -1,8 +1,18 @@
 #include <queue>
 #include <iostream>
+#include <iomanip>
+#include <algorithm>
+
 #include "base_city.hpp"
 #include "target_city.hpp"
 #include "scenario2.hpp"
+
+#define CLR_RESET "\033[0m"
+#define CLR_GREEN "\033[32m"
+#define CLR_RED "\033[31m"
+#define CLR_YELLOW "\033[33m"
+#define CLR_CYAN "\033[36m"
+#define CLR_BOLD "\033[1m"
 
 Scenario2::Scenario2(Graph &g) : Scenario(g) {}
 
@@ -143,21 +153,25 @@ void Scenario2::buildBaseToPathsMap()
     }
 }
 
+#include <iomanip>
+#include <algorithm>
+
+// ANSI colors
+#define CLR_RESET "\033[0m"
+#define CLR_GREEN "\033[32m"
+#define CLR_RED "\033[31m"
+#define CLR_YELLOW "\033[33m"
+#define CLR_CYAN "\033[36m"
+#define CLR_BOLD "\033[1m"
+
 void Scenario2::attack()
 {
     int totalDamage = 0;
     const auto &citiesGraph = Scenario::mapInformation.getCitiesGraph();
     const auto &nameToDesc = mapInformation.getCitiesVertex();
+    std::vector<Scenario2::FallbackBase> fallbackBases;
 
-    struct FallbackBase
-    {
-        Graph::VertexDescriptor base;
-        std::string baseName;
-        std::unordered_map<std::string, std::pair<int, int>> missileInventory; // <type, <count, damage>>
-        std::vector<PathInfo> paths;
-    };
-
-    std::vector<FallbackBase> fallbackBases;
+    std::cout << CLR_BOLD << "=== PHASE 1: SAFE ATTACKS ===" << CLR_RESET << "\n";
 
     for (const auto &base : baseVertices)
     {
@@ -178,13 +192,16 @@ void Scenario2::attack()
             const auto &bestPath = paths.front();
             if (bestPath.spyCount < missile.getStealth() && missile.getOveralDistance() >= bestPath.distance)
             {
-                std::cout << "Shoot " << count << " " << missile.getType() << " missiles using this safe path:\n";
+                std::cout << CLR_GREEN << "✔ Base " << baseCity->getName()
+                          << " fires " << count << " x " << missile.getType()
+                          << " via safe path: " << CLR_RESET;
+
                 for (const auto &cityName : bestPath.cities)
                     std::cout << cityName << " ";
                 std::cout << "\n";
 
                 int damage = missile.getDestruction() * count;
-                std::cout << "Damage of this attack: " << damage << "\n";
+                std::cout << "   Damage dealt: " << CLR_RED << damage << CLR_RESET << "\n";
                 totalDamage += damage;
             }
             else if (bestPath.spyCount >= missile.getStealth() && missile.getOveralDistance() >= bestPath.distance)
@@ -192,7 +209,7 @@ void Scenario2::attack()
                 std::ostringstream oss;
                 oss << missile.getType();
                 std::string type = oss.str();
-                exposedMissiles[type].first += count;
+                exposedMissiles[type].first += count; // missile count
                 exposedMissiles[type].second = missile.getDestruction();
             }
         }
@@ -203,7 +220,11 @@ void Scenario2::attack()
         }
     }
 
-    while (true)
+    int totalDamagePossible = getTotalDamage();
+    std::cout << "\n"
+              << CLR_BOLD << "=== PHASE 2: FALLBACK ATTACKS ===" << CLR_RESET << "\n";
+
+    do
     {
         bool missilesLeft = false;
         for (const auto &fb : fallbackBases)
@@ -232,18 +253,18 @@ void Scenario2::attack()
             for (const auto &path : fb.paths)
             {
                 std::string targetName = citiesGraph[path.target]->getName();
-                int totalMissileCount = 0, totalDamage = 0;
+                int totalMissileCount = 0, totalDmg = 0;
 
                 for (const auto &[type, data] : fb.missileInventory)
                 {
                     totalMissileCount += data.first;
-                    totalDamage += data.first * data.second;
+                    totalDmg += data.first * data.second;
                 }
 
                 if (totalMissileCount > 0)
                 {
                     totalMissilesToTarget[targetName] += totalMissileCount;
-                    totalDamageToTarget[targetName] += totalDamage;
+                    totalDamageToTarget[targetName] += totalDmg;
                     baseIndexes[targetName].push_back(i);
                 }
             }
@@ -276,8 +297,9 @@ void Scenario2::attack()
             }
         }
 
-        std::cout << "\n*** Rapid-Fire on \"" << bestTarget << "\" ***\n";
-        std::cout << "defense: " << bestTargetDefense << "\n";
+        std::cout << "\n"
+                  << CLR_CYAN << "*** Rapid-Fire on \"" << bestTarget << "\" ***" << CLR_RESET << "\n";
+        std::cout << "Defense level: " << bestTargetDefense << "\n";
 
         int totalFired = 0, totalBlocked = 0;
         std::unordered_map<std::string, int> blockedByType;
@@ -297,16 +319,16 @@ void Scenario2::attack()
             if (!pathToUse)
                 continue;
 
-            std::cout << "Base " << fb.baseName << " -> ";
+            std::cout << CLR_YELLOW << "From Base " << fb.baseName << " via path: " << CLR_RESET;
             for (const auto &city : pathToUse->cities)
                 std::cout << city << " ";
             std::cout << "\n";
 
-            std::vector<std::pair<std::string, std::pair<int, int>>> sortedMissiles(fb.missileInventory.begin(), fb.missileInventory.end());
-            std::sort(sortedMissiles.begin(), sortedMissiles.end(), [](const auto &a, const auto &b)
-                      {
-                          return a.second.second > b.second.second; // sort by damage descending
-                      });
+            std::vector<std::pair<std::string, std::pair<int, int>>> sortedMissiles(
+                fb.missileInventory.begin(), fb.missileInventory.end());
+            std::sort(sortedMissiles.begin(), sortedMissiles.end(),
+                      [](const auto &a, const auto &b)
+                      { return a.second.second > b.second.second; });
 
             int baseFired = 0;
             for (auto &[type, data] : sortedMissiles)
@@ -316,7 +338,7 @@ void Scenario2::attack()
                 if (count == 0)
                     continue;
 
-                std::cout << "  - " << count << " x " << type << "\n";
+                std::cout << "   - " << count << " x " << type << "\n";
 
                 for (int i = 0; i < count; ++i)
                 {
@@ -328,7 +350,8 @@ void Scenario2::attack()
                     else
                     {
                         totalDamage += damage;
-                        std::cout << "  ✅ Hit with " << type << " (+" << damage << " damage)\n";
+                        std::cout << "     " << CLR_GREEN << "✅ Hit with " << type
+                                  << " (+" << damage << " dmg)" << CLR_RESET << "\n";
                     }
                     totalFired++;
                 }
@@ -338,21 +361,44 @@ void Scenario2::attack()
             }
 
             if (baseFired == 0)
-                std::cout << "  (no missiles left)\n";
+                std::cout << "   (no missiles left)\n";
         }
 
-        std::cout << "total Missiles Fired: " << totalFired << "\n";
-        std::cout << "blocked: " << totalBlocked << "\n";
-        std::cout << "bypassed: " << totalFired - totalBlocked << "\n";
-        std::cout << "blocked summary:\n";
+        std::cout << CLR_BOLD << "\n--- Attack Summary ---" << CLR_RESET << "\n";
+        std::cout << "Total Fired:  " << totalFired << "\n";
+        std::cout << "Blocked:      " << totalBlocked << "\n";
+        std::cout << "Bypassed:     " << (totalFired - totalBlocked) << "\n";
+        std::cout << "Blocked by Type:\n";
         for (const auto &[type, cnt] : blockedByType)
-            std::cout << "  - " << type << ": " << cnt << "\n";
-        std::cout << "hit summary:\n";
-        for (const auto &[target, damage] : totalDamageToTarget)
-            std::cout << "  - " << target << ": " << damage << "\n";
-    }
+            std::cout << "   - " << type << ": " << cnt << "\n";
+        std::cout << "Damage to Targets:\n";
+        for (const auto &[target, dmg] : totalDamageToTarget)
+            std::cout << "   - " << target << ": " << dmg << "\n";
 
-    std::cout << "\n************\nTotal Damage: " << totalDamage << "\n";
+    } while (totalDamagePossible * 0.9 >= totalDamage);
+
+    std::cout << "\n"
+              << CLR_BOLD << "=== FINAL DAMAGE REPORT ===" << CLR_RESET << "\n";
+    std::cout << "Total Damage: " << CLR_RED << totalDamage << CLR_RESET << "\n";
+}
+
+int Scenario2::getTotalDamage()
+{
+    int totalDamage = 0;
+    const auto &cities = Scenario2::mapInformation.getCitiesGraph();
+
+    for (const auto &base : baseVertices)
+    {
+        auto cityPtr = cities[base];
+        auto baseCityPtr = std::dynamic_pointer_cast<BaseCity>(cityPtr);
+        const auto &missiles = baseCityPtr->getMissiles();
+
+        for (const auto &m : missiles)
+        {
+            totalDamage += m.second * m.first.getDestruction();
+        }
+    }
+    return totalDamage;
 }
 
 void Scenario2::solve()
