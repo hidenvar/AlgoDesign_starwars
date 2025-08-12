@@ -24,6 +24,7 @@ private:
     const std::vector<Graph::VertexDescriptor> getTargetVertices() const;
     void buildBaseToPathsMap();
     const std::vector<PathInfo> &getPathsFromBase(Graph::VertexDescriptor base) const;
+    int getTotalDamage();
     void attack();
 
 private:
