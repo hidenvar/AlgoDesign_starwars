@@ -16,6 +16,15 @@ private:
         int spyCount;
     };
 
+    struct FallbackBase
+    {
+        Graph::VertexDescriptor base;
+        std::string baseName;
+        std::unordered_map<std::string, int> missileInventory;
+        int damagePerMissile;
+        std::vector<PathInfo> paths;
+    };
+
 private:
     void initialize() override;
     void findPaths();
@@ -32,6 +41,6 @@ private:
     std::vector<Graph::VertexDescriptor> targetVertices;
 
     // map : base -> vector of paths that start from that base
-    std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>> baseToPathsMap;    
+    std::unordered_map<Graph::VertexDescriptor, std::vector<PathInfo>> baseToPathsMap;
     std::vector<PathInfo> paths;
 };
