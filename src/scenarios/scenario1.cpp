@@ -126,7 +126,7 @@ const std::vector<Scenario1::PathInfo>& Scenario1::getPathsFromBase(Graph::Verte
   return (it != baseToPathsMap.end()) ? it->second : empty;
 }
 
-const void Scenario1::attack() {
+void Scenario1::attack() {
   int totalDamage = 0;
   auto cities = Scenario1::mapInformation.getCitiesGraph();
   auto nameToDesc = mapInformation.getCitiesVertex();
