@@ -15,6 +15,7 @@ private:
     void printPathInfo() const;
     void initialize() override;
     void attack();
+    int getTotalDamage();
 
 private:
     struct PathInfo
@@ -27,6 +28,15 @@ private:
         double maxGap;
     };
 
+    struct FallbackBase
+    {
+        Graph::VertexDescriptor base;
+        std::string baseName;
+        std::unordered_map<std::string, std::pair<int, int>> missileInventory;
+        std::vector<PathInfo> paths;
+    };
+
+private:
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
     std::vector<PathInfo> paths;
