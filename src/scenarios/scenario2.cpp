@@ -153,17 +153,6 @@ void Scenario2::buildBaseToPathsMap()
     }
 }
 
-#include <iomanip>
-#include <algorithm>
-
-// ANSI colors
-#define CLR_RESET "\033[0m"
-#define CLR_GREEN "\033[32m"
-#define CLR_RED "\033[31m"
-#define CLR_YELLOW "\033[33m"
-#define CLR_CYAN "\033[36m"
-#define CLR_BOLD "\033[1m"
-
 void Scenario2::attack()
 {
     int totalDamage = 0;
