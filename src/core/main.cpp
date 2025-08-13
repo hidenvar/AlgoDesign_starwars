@@ -5,6 +5,7 @@
 #include "target_city.hpp"
 #include "scenario1.hpp"
 #include "scenario2.hpp"
+#include "scenario4.hpp"
 
 // void printAllCities(const Graph& graph) {
 //     auto graphData = graph.getCitiesGraph();
@@ -82,6 +83,9 @@ int main(int argc, char* argv[]) {
         s.solve();
     } else if (scenario == 2) {
         Scenario2 s(g);
+        s.solve();
+    } else if (scenario == 4) {
+        Scenario4 s(g);
         s.solve();
     }
 }
