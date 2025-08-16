@@ -486,10 +486,14 @@ std::vector<Scenario5::FallbackBase> Scenario5::collectFallbackBases() {
 
       auto basePtr = std::dynamic_pointer_cast<BaseCity>(
           mapInformation.getCitiesGraphRef()[baseV]);
-      if (!basePtr) continue;
-
-      bases.push_back(
-          {baseV, basePtr->getName(), type, count, damage, std::move(valid)});
+      if (!basePtr)
+        continue;
+      else {
+        bases.push_back(
+            {baseV, basePtr->getName(), type, count, damage, std::move(valid)});
+        // break early so we have only one base for each missile type
+        break;
+      }
     }
   }
   return bases;

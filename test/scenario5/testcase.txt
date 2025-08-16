@@ -1,9 +1,4 @@
-B1 500
-B2 8
-C2 6
-C1 12
-D1 10
-A1 3
+D1 5
 
 city1 country_a 100 0 BASE 0
 city2 country_a 200 0 BASE 0
