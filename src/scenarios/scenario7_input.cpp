@@ -8,7 +8,7 @@
 #include "missile.hpp"
 #include "target_city.hpp"
 
-void Scenario7Input::fillInventory(std::istream &input, Inventory &inventory)
+void Scenario7Input::fillInventory(std::istream &input, Inventory &inventory, std::unordered_map<std::string, std::pair<int, double>> &pr)
 {
     std::string line;
     while (std::getline(input, line))
@@ -18,25 +18,52 @@ void Scenario7Input::fillInventory(std::istream &input, Inventory &inventory)
 
         std::string type;
         int cnt;
+        double price;
         std::istringstream iss(line);
-        iss >> type >> cnt;
+        iss >> type >> cnt >> price;
 
         if (type == "A1")
+        {
             inventory.A1 = cnt;
+            pr[type] = {cnt, price};
+        }
         else if (type == "A2")
+        {
             inventory.A2 = cnt;
+            pr[type] = {cnt, price};
+        }
         else if (type == "A3")
+        {
             inventory.A3 = cnt;
+            pr[type] = {cnt, price};
+        }
         else if (type == "B1")
+        {
             inventory.B1 = cnt;
+            pr[type] = {cnt, price};
+        }
         else if (type == "B2")
+        {
             inventory.B2 = cnt;
+            pr[type] = {cnt, price};
+        }
         else if (type == "C1")
+        {
             inventory.C1 = cnt;
+            pr[type] = {cnt, price};
+        }
+
         else if (type == "C2")
+        {
             inventory.C2 = cnt;
+            pr[type] = {cnt, price};
+        }
+
         else if (type == "D1")
+        {
             inventory.D1 = cnt;
+            pr[type] = {cnt, price};
+        }
     }
 }
 

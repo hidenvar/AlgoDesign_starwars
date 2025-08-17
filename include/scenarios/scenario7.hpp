@@ -7,7 +7,7 @@
 class Scenario7 : public Scenario
 {
 public:
-    Scenario7(Graph, Inventory);
+    Scenario7(Graph, Inventory, std::unordered_map<std::string, std::pair<int, double>>);
 
 public:
     void initialize();
@@ -27,9 +27,10 @@ private:
     };
 
 private:
+    Inventory inventory;
+    std::unordered_map<std::string, std::pair<int, double>> pr;
     std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
     std::vector<PathInfo> paths;
-    Inventory inventory;
 };

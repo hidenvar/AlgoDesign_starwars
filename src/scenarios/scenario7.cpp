@@ -4,7 +4,7 @@
 #include "graph.hpp"
 #include "missile_factory.hpp"
 
-Scenario7::Scenario7(Graph g, Inventory i) : Scenario(g), inventory(i) {}
+Scenario7::Scenario7(Graph g, Inventory i, std::unordered_map<std::string, std::pair<int, double>> pr) : Scenario(g), inventory(i), pr(pr) {}
 
 void Scenario7::initialize()
 {
@@ -178,4 +178,3 @@ void Scenario7::buildMissilePathMap()
 }
 
 void Scenario7::solve() { return; }
-
