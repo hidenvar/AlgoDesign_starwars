@@ -2,6 +2,9 @@
 
 #include "scenario7.hpp"
 #include "graph.hpp"
+#include "missile_factory.hpp"
+
+Scenario7::Scenario7(Graph g, Inventory i) : Scenario(g), inventory(i) {}
 
 void Scenario7::initialize()
 {
@@ -139,3 +142,40 @@ void Scenario7::findPaths()
         }
     }
 }
+
+void Scenario7::buildMissilePathMap()
+{
+    missilePathMap.clear(); // Clear existing entries
+
+    // Define all missile types with their identifiers
+    static const std::vector<std::pair<std::string, Missile>> missileList = {
+        {"A1", MissileFactory::A1}, {"A2", MissileFactory::A2}, {"A3", MissileFactory::A3}, {"B1", MissileFactory::B1}, {"B2", MissileFactory::B2}, {"C1", MissileFactory::C1}, {"C2", MissileFactory::C2}, {"D1", MissileFactory::D1}};
+
+    for (auto &path : paths)
+    {
+        // Check against each missile type
+        for (const auto &missilePair : missileList)
+        {
+            const std::string &missileType = missilePair.first;
+            const Missile &missile = missilePair.second;
+
+            // Check range and gap
+            if (path.distance <= missile.getOveralDistance() &&
+                path.max_gap <= missile.getUncontrolledDistance())
+            {
+                // safe/revealed status
+                if (path.spyCount < missile.getStealth())
+                {
+                    missilePathMap[missileType + " safe"].push_back(path);
+                }
+                else
+                {
+                    missilePathMap[missileType + " revealed"].push_back(path);
+                }
+            }
+        }
+    }
+}
+
+void Scenario7::solve() { return; }
+

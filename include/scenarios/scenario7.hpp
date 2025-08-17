@@ -9,9 +9,11 @@ class Scenario7 : public Scenario
 public:
     Scenario7(Graph, Inventory);
 
-private:
+public:
     void initialize();
     void findPaths();
+    void buildMissilePathMap();
+    void solve() override;
 
 private:
     struct PathInfo
@@ -25,7 +27,9 @@ private:
     };
 
 private:
+    std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
     std::vector<PathInfo> paths;
+    Inventory inventory;
 };
