@@ -11,7 +11,8 @@
 #include "scenario5.hpp"
 #include "iomanip"
 #include "target_city.hpp"
-
+#include "scenario7_input.hpp"
+#include "scenario7.hpp"
 
 auto printPaths = [](const std::string& label,
                            const std::vector<Scenario3::PathInfo>& vec) {
@@ -178,5 +179,16 @@ int main(int argc, char* argv[]) {
       for(auto n : s.nights) std::cout << (n ? "✅" : "❌") << " ";
       break;
     }
+    case 7:
+    std::unordered_map<std::string, std::pair<int, double>> pr;
+      Inventory in;
+      Scenario7Input::fillInventory(std::cin, in, pr);
+      Scenario7Input::createCities(std::cin, g);
+      Scenario7 s(g, in, pr);
+      s.initialize();
+      s.findPaths();
+      s.buildMissilePathMap();
+      logInventory(in);
+
   }
 }
