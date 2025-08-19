@@ -1,10 +1,11 @@
 #include <queue>
+#include <iostream>
 
 #include "scenario7.hpp"
 #include "graph.hpp"
 #include "missile_factory.hpp"
 
-Scenario7::Scenario7(Graph g, Inventory i, std::unordered_map<std::string, std::pair<int, double>> pr) : Scenario(g), inventory(i), pr(pr) {}
+Scenario7::Scenario7(Graph g, Inventory i, std::unordered_map<std::string, std::pair<int, double>> pr, int ds) : Scenario(g), inventory(i), pr(pr), desiredDamage(ds) {}
 
 void Scenario7::initialize()
 {
@@ -175,6 +176,80 @@ void Scenario7::buildMissilePathMap()
             }
         }
     }
+
+    std::cout << "\n======= Summary =======\n";
+    const std::vector<std::string> missileOrder = {
+        "A1 safe", "A1 revealed", "A2 safe", "A2 revealed",
+        "A3 safe", "A3 revealed", "B1 safe", "B1 revealed",
+        "B2 safe", "B2 revealed", "C1 safe", "C1 revealed",
+        "C2 safe", "C2 revealed", "D1 safe", "D1 revealed"};
+    for (const auto &category : missileOrder)
+    {
+        auto it = missilePathMap.find(category);
+        if (it != missilePathMap.end())
+        {
+            std::cout << category << ": " << it->second.size() << " paths\n";
+        }
+        else
+        {
+            std::cout << category << ": 0 paths\n";
+        }
+    }
 }
 
 void Scenario7::solve() { return; }
+
+int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
+{
+    const int D = 120;
+    const int INF = INT_MAX / 2;
+    int maxD = D + 1000;
+
+    std::vector<int> dp(maxD + 1, INF);
+    std::vector<std::map<std::string, int>> choice(maxD + 1);
+    dp[0] = 0;
+    static const std::vector<std::string> type = {" safe", " revealed"};
+    for (const auto &[name, info] : pr)
+    {
+        if (missilePathMap[name + type[0]].empty()) continue;
+        int count = info.first;
+        int price = info.second;
+        auto damage = MissileFactory::getMissile(getMissileType(name)).getDestruction();
+        std::cout << damage << "\n";
+        for (int k = 1; count > 0; k <<= 1)
+        {
+            int use = std::min(k, count);
+            int total_d = use * damage;
+            int total_p = use * price;
+
+            for (int j = maxD - total_d; j >= 0; --j)
+            {
+                if (dp[j] != INF && dp[j + total_d] > dp[j] + total_p)
+                {
+                    dp[j + total_d] = dp[j] + total_p;
+                    choice[j + total_d] = choice[j];
+                    choice[j + total_d][name] += use;
+                }
+            }
+
+            count -= use;
+        }
+    }
+
+    int result = INF;
+    int bestD = -1;
+    for (int i = D; i <= maxD; ++i)
+    {
+        if (dp[i] < result)
+        {
+            result = dp[i];
+            bestD = i;
+        }
+    }
+
+    if (result == INF)
+        return -1;
+
+    usedMissiles = choice[bestD];
+    return result;
+}
