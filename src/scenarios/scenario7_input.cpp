@@ -107,3 +107,8 @@ void Scenario7Input::createCities(std::istream &input, Graph &citiesGraph)
         }
     }
 }
+
+void Scenario7Input::setDesiredDamage(std::istream &input, int &desiredDamage)
+{
+    input >> desiredDamage;
+}
