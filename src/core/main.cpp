@@ -9,6 +9,7 @@
 #include "scenario3_input.hpp"
 #include "scenario5_input.hpp"
 #include "scenario5.hpp"
+#include "scenario6.hpp"
 #include "iomanip"
 #include "target_city.hpp"
 
@@ -177,6 +178,12 @@ int main(int argc, char* argv[]) {
 
       for(auto n : s.nights) std::cout << (n ? "✅" : "❌") << " ";
       break;
+    }
+    case 6: {
+    Inventory in;
+    Scenario6 s(g, in);
+    s.solve();
+    break;
     }
   }
 }
