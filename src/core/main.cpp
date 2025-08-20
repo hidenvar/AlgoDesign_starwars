@@ -205,31 +205,20 @@ int main(int argc, char *argv[])
     break;
   }
   case 7:
-    std::unordered_map<std::string, std::pair<int, double>> pr;
-    Inventory in;
-    int ds;
-    Scenario7Input::fillInventory(std::cin, in, pr);
-    Scenario7Input::createCities(std::cin, g);
-    Scenario7Input::setDesiredDamage(std::cin, ds);
-
-    Scenario7 s(g, in, pr, ds);
-    s.initialize();
-    s.findPaths();
-    s.buildMissilePathMap();
-    std::map<std::string, int> usedMissiles;
-    int cost = s.findMinimumCost(usedMissiles);
-    if (cost == -1)
-    {
-      std::cout << "Impossible to reach damage  with available missiles.\n";
-    }
-    else
-    {
-      std::cout << "Minimum cost: " << cost << "\nMissiles used:\n";
-      for (const auto &[name, count] : usedMissiles)
-      {
-        std::cout << "  " << name << ": " << count << "\n";
-      }
-    }
+    Scenario7 s;
+    s.solve();
+    // if (cost == -1)
+    // {
+    //   std::cout << "Impossible to reach damage  with available missiles.\n";
+    // }
+    // else
+    // {
+    //   std::cout << "Minimum cost: " << cost << "\nMissiles used:\n";
+    //   for (const auto &[name, count] : usedMissiles)
+    //   {
+    //     std::cout << "  " << name << ": " << count << "\n";
+    //   }
+    // }
     // logInventory(in);
   }
 }

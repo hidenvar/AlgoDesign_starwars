@@ -4,6 +4,7 @@
 #include "target_city.hpp"
 
 Scenario::Scenario(Graph &g): mapInformation(g){}
+Scenario::Scenario() {}
 
 void Scenario::printAllCities() {
     auto graphData = mapInformation.getCitiesGraph();

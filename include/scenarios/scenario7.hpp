@@ -7,7 +7,7 @@
 class Scenario7 : public Scenario
 {
 public:
-    Scenario7(Graph, Inventory, std::unordered_map<std::string, std::pair<int, double>>, int ds);
+    Scenario7();
 
 public:
     void initialize();
@@ -15,6 +15,7 @@ public:
     void buildMissilePathMap();
     void solve() override;
     int findMinimumCost(std::map<std::string, int> &usedMissiles);
+    void attack();
 
 private:
     struct PathInfo
@@ -28,9 +29,9 @@ private:
     };
 
 private:
-    int desiredDamage;
     Inventory inventory;
     std::unordered_map<std::string, std::pair<int, double>> pr;
+    int desiredDamage;
     std::unordered_map<std::string, std::vector<PathInfo>> missilePathMap;
     std::vector<Graph::VertexDescriptor> baseVertices;
     std::vector<Graph::VertexDescriptor> targetVertices;
