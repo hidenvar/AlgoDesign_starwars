@@ -4,11 +4,13 @@
 #include "scenario7.hpp"
 #include "graph.hpp"
 #include "missile_factory.hpp"
+#include "scenario7_input.hpp"
 
-Scenario7::Scenario7(Graph g, Inventory i, std::unordered_map<std::string, std::pair<int, double>> pr, int ds) : Scenario(g), inventory(i), pr(pr), desiredDamage(ds) {}
+Scenario7::Scenario7() {}
 
 void Scenario7::initialize()
 {
+
     int uncontrolledDistance = 900;
 
     auto citiesGraph = Scenario::mapInformation.getCitiesGraph();
@@ -197,13 +199,21 @@ void Scenario7::buildMissilePathMap()
     }
 }
 
-void Scenario7::solve() { return; }
+void Scenario7::solve()
+{
+    Scenario7Input::fillInventory(std::cin, inventory, pr);
+    Scenario7Input::createCities(std::cin, Scenario::mapInformation);
+    Scenario7Input::setDesiredDamage(std::cin, desiredDamage);
+    initialize();
+    findPaths();
+    buildMissilePathMap();
+    attack();
+}
 
 int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
 {
-    const int D = 120;
     const int INF = INT_MAX / 2;
-    int maxD = D + 1000;
+    int maxD = desiredDamage + 1000;
 
     std::vector<int> dp(maxD + 1, INF);
     std::vector<std::map<std::string, int>> choice(maxD + 1);
@@ -211,11 +221,11 @@ int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
     static const std::vector<std::string> type = {" safe", " revealed"};
     for (const auto &[name, info] : pr)
     {
-        if (missilePathMap[name + type[0]].empty()) continue;
+        if (missilePathMap[name + type[0]].empty())
+            continue;
         int count = info.first;
         int price = info.second;
         auto damage = MissileFactory::getMissile(getMissileType(name)).getDestruction();
-        std::cout << damage << "\n";
         for (int k = 1; count > 0; k <<= 1)
         {
             int use = std::min(k, count);
@@ -238,7 +248,7 @@ int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
 
     int result = INF;
     int bestD = -1;
-    for (int i = D; i <= maxD; ++i)
+    for (int i = desiredDamage; i <= maxD; ++i)
     {
         if (dp[i] < result)
         {
@@ -252,4 +262,60 @@ int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
 
     usedMissiles = choice[bestD];
     return result;
+}
+
+void Scenario7::attack()
+{
+    // Safe Attack
+
+    const auto &citiesGraph = Scenario::mapInformation.getCitiesGraph();
+    std::map<std::string, int> usedMissiles;
+    int nights = 2;
+
+    while (nights--)
+    {
+        // Find minimum cost to reach desired damage
+        int minimumCost = findMinimumCost(usedMissiles);
+        if (minimumCost == -1)
+            break;
+
+        // for (const auto& [m, cnt] : usedMissiles) {
+        //     std::cout << m << ": " << cnt << '\n';
+        // }
+        // std::cout << minimumCost << '\n';
+
+        // Update missiles count
+        for (const auto &[m, cnt] : usedMissiles)
+        {
+            pr[m].first -= cnt;
+            // delete if no missiles of a certain type exists
+            if (pr[m].first == 0)
+            {
+                pr.erase(m);
+            }
+        }
+
+        // Log
+        for (const auto &[missile, cnt] : usedMissiles)
+        {
+            std::cout << "============================================\n";
+            std::cout << "Missile Type : " << missile << '\n';
+            std::cout << "Fired Count  : x" << cnt << '\n';
+            std::cout << "Path Used    :\n";
+
+            const auto &cityVec = missilePathMap[missile + " safe"];
+            const auto &path = cityVec[0].cities;
+
+            for (size_t i = 0; i < path.size(); ++i)
+            {
+                std::cout << "  " << path[i];
+                if (i != path.size() - 1)
+                    std::cout << " ->";
+            }
+
+            std::cout << "\n\n";
+        }
+
+        // Fallback Attack
+    }
 }
