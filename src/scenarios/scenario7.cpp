@@ -1,10 +1,13 @@
 #include <queue>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include "scenario7.hpp"
 #include "graph.hpp"
 #include "missile_factory.hpp"
 #include "scenario7_input.hpp"
+#include "target_city.hpp"
 
 Scenario7::Scenario7() {}
 
@@ -201,7 +204,7 @@ void Scenario7::buildMissilePathMap()
 
 void Scenario7::solve()
 {
-    Scenario7Input::fillInventory(std::cin, inventory, pr);
+    Scenario7Input::fillInventory(std::cin, inventory, missilePrice);
     Scenario7Input::createCities(std::cin, Scenario::mapInformation);
     Scenario7Input::setDesiredDamage(std::cin, desiredDamage);
     initialize();
@@ -210,19 +213,16 @@ void Scenario7::solve()
     attack();
 }
 
-int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
+int Scenario7::findMinimumCost(std::unordered_map<std::string, std::pair<int, double>> &prices, std::map<std::string, int> &usedMissiles)
 {
     const int INF = INT_MAX / 2;
     int maxD = desiredDamage + 1000;
-
     std::vector<int> dp(maxD + 1, INF);
     std::vector<std::map<std::string, int>> choice(maxD + 1);
     dp[0] = 0;
-    static const std::vector<std::string> type = {" safe", " revealed"};
-    for (const auto &[name, info] : pr)
+
+    for (const auto &[name, info] : prices)
     {
-        if (missilePathMap[name + type[0]].empty())
-            continue;
         int count = info.first;
         int price = info.second;
         auto damage = MissileFactory::getMissile(getMissileType(name)).getDestruction();
@@ -266,56 +266,405 @@ int Scenario7::findMinimumCost(std::map<std::string, int> &usedMissiles)
 
 void Scenario7::attack()
 {
-    // Safe Attack
-
+ // Safe Attack
+ 
     const auto &citiesGraph = Scenario::mapInformation.getCitiesGraph();
+    std::unordered_map<std::string, std::pair<int, double>> safeMissiles;
     std::map<std::string, int> usedMissiles;
-    int nights = 2;
+    int totalDamage = 0;
+    int totalCost = 0;
+    int successfulNights = 0;
+    std::vector<std::string> nightResults;
 
-    while (nights--)
+    int totalNights = 7;
+    for (int night = 1; night <= totalNights; ++night)
     {
-        // Find minimum cost to reach desired damage
-        int minimumCost = findMinimumCost(usedMissiles);
-        if (minimumCost == -1)
-            break;
 
-        // for (const auto& [m, cnt] : usedMissiles) {
-        //     std::cout << m << ": " << cnt << '\n';
-        // }
-        // std::cout << minimumCost << '\n';
-
-        // Update missiles count
-        for (const auto &[m, cnt] : usedMissiles)
+        safeMissiles.clear();
+        for (const auto &[missile, cnt] : missilePrice)
         {
-            pr[m].first -= cnt;
-            // delete if no missiles of a certain type exists
-            if (pr[m].first == 0)
+            if (!missilePathMap[missile + " safe"].empty())
             {
-                pr.erase(m);
+                safeMissiles[missile] = {cnt.first, cnt.second};
             }
         }
 
-        // Log
-        for (const auto &[missile, cnt] : usedMissiles)
+        int nightDamage = 0;
+        int nightCost = 0;
+        int minimumCost = findMinimumCost(safeMissiles, usedMissiles);
+        if (minimumCost != -1)
         {
-            std::cout << "============================================\n";
-            std::cout << "Missile Type : " << missile << '\n';
-            std::cout << "Fired Count  : x" << cnt << '\n';
-            std::cout << "Path Used    :\n";
+            // Safe Attack
+            std::cout << "\n===================== Night " << night << " Attack Summary =====================\n";
+            std::cout << std::left
+                      << std::setw(15) << "Missile Type"
+                      << std::setw(12) << "Count"
+                      << std::setw(12) << "Damage"
+                      << std::setw(12) << "Cost"
+                      << "Path\n";
+            std::cout << std::string(80, '-') << '\n';
 
-            const auto &cityVec = missilePathMap[missile + " safe"];
-            const auto &path = cityVec[0].cities;
-
-            for (size_t i = 0; i < path.size(); ++i)
+            for (const auto &[missile, cnt] : usedMissiles)
             {
-                std::cout << "  " << path[i];
-                if (i != path.size() - 1)
-                    std::cout << " ->";
+                int missileDmg = MissileFactory::getMissile(getMissileType(missile)).getDestruction() * cnt;
+                int missileCost = missilePrice[missile].second * cnt;
+                nightDamage += missileDmg;
+                nightCost += missileCost;
+
+                const auto &cityVec = missilePathMap[missile + " safe"];
+                const auto &path = cityVec[0].cities;
+
+                std::stringstream pathStream;
+                for (size_t i = 0; i < path.size(); ++i)
+                {
+                    pathStream << path[i];
+                    if (i != path.size() - 1)
+                        pathStream << " -> ";
+                }
+
+                std::cout << std::left
+                          << std::setw(15) << missile
+                          << std::setw(12) << ("x" + std::to_string(cnt))
+                          << std::setw(12) << missileDmg
+                          << std::setw(12) << missileCost
+                          << pathStream.str() << '\n';
             }
 
-            std::cout << "\n\n";
+            std::cout << std::string(80, '-') << '\n';
+            std::cout << "Total damage this round : " << nightDamage << '\n';
+            std::cout << "Total cost   this round : " << nightCost << '\n';
+        }
+        else
+        {
+            // =================== Fallback Attack ===================
+
+            int bestCost = INT_MAX;
+            std::map<std::string, int> bestUsedMissiles;
+            std::string bestTargetName;
+
+            for (const auto &target : targetVertices)
+            {
+                safeMissiles.clear();
+                std::vector<Missile> exposed;
+                std::vector<Missile> unexposed;
+                std::unordered_set<std::string> addedMissiles;
+
+                // Collect usable missiles from both safe and revealed paths
+                for (const auto &[missileName, missileInfo] : missilePrice)
+                {
+                    bool added = false;
+
+                    for (const std::string status : {" safe", " revealed"})
+                    {
+                        std::string key = missileName + status;
+                        if (missilePathMap.count(key) == 0)
+                            continue;
+
+                        for (const auto &path : missilePathMap[key])
+                        {
+                            if (path.target == target && !addedMissiles.count(missileName))
+                            {
+                                Missile missile = MissileFactory::getMissile(getMissileType(missileName));
+                                if (status == " revealed")
+                                    exposed.push_back(missile);
+                                else
+                                    unexposed.push_back(missile);
+                                addedMissiles.insert(missileName);
+                                added = true;
+                                break;
+                            }
+                        }
+
+                        if (added)
+                            break;
+                    }
+                }
+
+                // Sort exposed (revealed) missiles to breach defense with highest damage first
+                std::sort(exposed.begin(), exposed.end(), [](const Missile &a, const Missile &b)
+                          { return a.getDestruction() > b.getDestruction(); });
+
+                auto targetCity = citiesGraph[target];
+                auto targetPtr = std::dynamic_pointer_cast<TargetCity>(targetCity);
+                if (!targetPtr)
+                    continue;
+
+                size_t defenseLevel = targetPtr->getDefenseLevel();
+                size_t i = 0;
+
+                // Use exposed missiles to breach defense
+                while (defenseLevel > 0 && i < exposed.size())
+                {
+                    const auto &missileType = exposed[i].getTypeString();
+                    int missileCount = missilePrice[missileType].first;
+                    int used = std::min(static_cast<int>(defenseLevel), missileCount);
+                    int remaining = missileCount - used;
+
+                    if (remaining > 0)
+                    {
+                        safeMissiles[missileType] = {remaining, missilePrice[missileType].second};
+                    }
+
+                    defenseLevel -= used;
+                    ++i;
+                }
+
+                // Add remaining exposed missiles (unused for breaching)
+                while (i < exposed.size())
+                {
+                    const auto &missileType = exposed[i].getTypeString();
+                    safeMissiles[missileType] = {missilePrice[missileType].first, missilePrice[missileType].second};
+                    ++i;
+                }
+
+                // Add all unexposed missiles
+                for (const auto &missile : unexposed)
+                {
+                    const auto &missileType = missile.getTypeString();
+                    safeMissiles[missileType] = {missilePrice[missileType].first, missilePrice[missileType].second};
+                }
+
+                // Find minimum cost with new inventory
+                usedMissiles.clear();
+                minimumCost = findMinimumCost(safeMissiles, usedMissiles);
+                if (minimumCost != -1 && minimumCost < bestCost)
+                {
+                    bestCost = minimumCost;
+                    bestUsedMissiles = usedMissiles;
+                    bestTargetName = targetPtr->getName();
+                }
+            }
+
+            if (bestCost != INT_MAX)
+            {
+                std::cout << "\n🛑 Fallback Attack Activated (Night " << night << ")\n";
+                std::cout << "Best target: " << bestTargetName << "\n";
+                std::cout << std::left
+                          << std::setw(15) << "Missile Type"
+                          << std::setw(12) << "Count"
+                          << std::setw(12) << "Damage"
+                          << std::setw(12) << "Cost"
+                          << "Path\n";
+                std::cout << std::string(80, '-') << '\n';
+
+                nightDamage = 0;
+                nightCost = 0;
+
+                usedMissiles = bestUsedMissiles;
+                for (const auto &[missile, cnt] : bestUsedMissiles)
+                {
+                    int damage = MissileFactory::getMissile(getMissileType(missile)).getDestruction() * cnt;
+                    int cost = missilePrice[missile].second * cnt;
+
+                    nightDamage += damage;
+                    nightCost += cost;
+
+                    const std::string pathKey = missile + (!missilePathMap[missile + " safe"].empty() ? " safe" : " revealed");
+                    const auto &cityVec = missilePathMap[pathKey];
+                    const auto &path = cityVec[0].cities;
+
+                    std::stringstream pathStream;
+                    for (size_t i = 0; i < path.size(); ++i)
+                    {
+                        pathStream << path[i];
+                        if (i != path.size() - 1)
+                            pathStream << " -> ";
+                    }
+
+                    std::cout << std::left
+                              << std::setw(15) << missile
+                              << std::setw(12) << ("x" + std::to_string(cnt))
+                              << std::setw(12) << damage
+                              << std::setw(12) << cost
+                              << pathStream.str() << '\n';
+                }
+
+                std::cout << std::string(80, '-') << '\n';
+                std::cout << "Total damage this round : " << nightDamage << '\n';
+                std::cout << "Total cost   this round : " << nightCost << '\n';
+            }
         }
 
-        // Fallback Attack
+        // Log successful nights
+        bool nightSuccess = nightDamage >= desiredDamage;
+        if (nightSuccess)
+        {
+            std::cout << "✅ Status: SUCCESS — Target damage achieved.\n";
+            successfulNights++;
+            nightResults.push_back("Night " + std::to_string(night) + ": ✅ SUCCESS");
+            totalDamage += nightDamage;
+            totalCost += nightCost;
+
+            // Update inventory
+            for (const auto &[m, cnt] : usedMissiles)
+            {
+                missilePrice[m].first -= cnt;
+                if (missilePrice[m].first == 0)
+                {
+                    missilePrice.erase(m);
+                }
+            }
+            continue;
+        }
+        else
+        {
+            nightResults.push_back("Night " + std::to_string(night) + ": ❌ FAILED — No solution");
+        }
     }
+
+    std::cout << "\n===================== Final Summary =====================\n";
+    for (const auto &line : nightResults)
+    {
+        std::cout << line << '\n';
+    }
+    std::cout << "\nTotal successful nights : " << successfulNights << "/" << totalNights << '\n';
+    std::cout << "Total damage dealt      : " << totalDamage << '\n';
+    std::cout << "Total cost spent        : " << totalCost << '\n';
 }
+
+// for (const auto &target : targetVertices)
+// {
+//     std::vector<Missile> exposed;
+//     std::vector<Missile> unexposed;
+
+//     // Step 1: Classify missiles for this target
+//     for (const auto &[missileStatus, pathVec] : missilePathMap)
+//     {
+//         const auto &missileName = missileStatus.substr(0, missileStatus.find(' '));
+//         bool isExposed = missileStatus.find("revealed") != std::string::npos;
+
+//         if (missilePrice.find(missileName) == missilePrice.end())
+//             continue;
+
+//         for (const auto &pathInfo : pathVec)
+//         {
+//             if (pathInfo.target == target)
+//             {
+//                 isExposed
+//                     ? exposed.push_back(MissileFactory::getMissile(getMissileType(missileName)))
+//                     : unexposed.push_back(MissileFactory::getMissile(getMissileType(missileName)));
+//             }
+//         }
+//     }
+
+//     // Step 2: Sort exposed missiles by damage descending
+//     std::sort(exposed.begin(), exposed.end(), [](const Missile &a, const Missile &b)
+//               { return a.getDestruction() > b.getDestruction(); });
+
+//     // Step 3: Breach defense: remove top defenseLevel missiles
+//     int defenseLevel = targetDefense[target];
+//     std::vector<Missile> remainingExposed;
+//     for (size_t i = 0; i < exposed.size(); ++i)
+//     {
+//         if (i >= defenseLevel)
+//         {
+//             remainingExposed.push_back(exposed[i]);
+//         }
+//     }
+
+//     // Step 4: Combine remaining exposed + unexposed for DP
+//     std::vector<Missile> usableMissiles = remainingExposed;
+//     usableMissiles.insert(usableMissiles.end(), unexposed.begin(), unexposed.end());
+
+//     // Step 5: Apply DP to find min-cost subset that reaches desired damage
+//     auto [cost, selectedMissiles] = dpMinCost(usableMissiles, desiredDamage);
+
+//     // Step 6: Keep track of best solution
+//     if (cost != -1 && (bestCost == -1 || cost < bestCost))
+//     {
+//         bestCost = cost;
+//         bestMissiles = selectedMissiles;
+//         bestTarget = target;
+//     }
+// }
+
+// struct MissileInstance
+// {
+//     std::string missileName;
+//     int damage;
+//     int cost;
+//     bool safe;
+//     std::string target;
+// };
+
+// std::vector<MissileInstance> survivedMissiles;
+
+// for (auto &target : targets)
+// {
+//     std::vector<MissileInstance> exposedMissilesToTarget;
+//     // gather all exposed missiles for this target
+//     for (auto &opt : options)
+//     {
+//         if (!opt.safe && opt.target == target.name)
+//         {
+//             for (int i = 0; i < opt.availableCount; ++i)
+//                 exposedMissilesToTarget.push_back({opt.missileName, opt.damage, opt.cost, false, target.name});
+//         }
+//     }
+
+//     // sort by descending damage
+//     std::sort(exposedMissilesToTarget.begin(), exposedMissilesToTarget.end(),
+//               [](const MissileInstance &a, const MissileInstance &b)
+//               { return a.damage > b.damage; });
+
+//     int destroyCount = target.defenseLevel;
+//     for (size_t i = 0; i < exposedMissilesToTarget.size(); ++i)
+//     {
+//         if (destroyCount > 0)
+//         {
+//             // missile destroyed
+//             --destroyCount;
+//         }
+//         else
+//         {
+//             survivedMissiles.push_back(exposedMissilesToTarget[i]);
+//         }
+//     }
+// }
+
+// std::map<std::string, TargetStatus> targetMissilesMap;
+
+// for (auto &target : targets) {
+//     TargetStatus status;
+//     status.targetName = target.name;
+//     status.defenseLevel = target.defenseLevel;
+
+//     std::vector<MissileInstance> exposed;
+
+//     // Gather missiles that can reach this target
+//     for (auto &[missile, pathVec] : missilePath) {
+//         for (auto &pathInfo : pathVec) {
+//             if (pathInfo.target == target.name) {
+//                 MissileInstance m;
+//                 m.missileName = missile;
+//                 m.damage = MissileFactory::getMissile(getMissileType(missile)).getDestruction();
+//                 m.cost = missilePrice[missile].second; // price
+//                 m.safe = (pathInfo.type == "safe");
+//                 m.pathType = pathInfo.type;
+
+//                 if (m.safe) {
+//                     status.reachedMissiles.push_back(m);
+//                 } else {
+//                     exposed.push_back(m);
+//                 }
+//             }
+//         }
+//     }
+
+//     // Sort exposed missiles by descending damage
+//     std::sort(exposed.begin(), exposed.end(), [](const MissileInstance &a, const MissileInstance &b) {
+//         return a.damage > b.damage;
+//     });
+
+//     // Apply target defense
+//     int destroyCount = target.defenseLevel;
+//     for (auto &m : exposed) {
+//         if (destroyCount > 0) {
+//             --destroyCount; // missile destroyed
+//         } else {
+//             status.reachedMissiles.push_back(m); // missile survives
+//         }
+//     }
+
+//     targetMissilesMap[target.name] = status;
+// }
