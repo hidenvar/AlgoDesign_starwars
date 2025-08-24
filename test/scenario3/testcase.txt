@@ -1,0 +1,14 @@
+B1 500
+B2 8
+C2 6
+C1 12
+
+city1 country_a 100 0 BASE 1 10
+city2 country_a 200 0 BASE 1 1
+city3 country_a -900 0 BASE 1 100
+city4 country_a -1000 0 BASE 1 1
+city5 country_a 150 -450 BASE 1 1
+city6 country_a -950 -450 BASE 1 1
+city7 country_b  150 100 TARGET 1 1
+city8 country_b -950 100 TARGET 1 3
+city9 country_b -950 -500 TARGET 0 5

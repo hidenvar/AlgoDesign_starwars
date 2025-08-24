@@ -1,9 +1,10 @@
+#pragma once
 #include "missile.hpp"
 
 class MissileFactory {
   public:
     static const Missile& getMissile(MissileType type); 
-  private:
+
     const static Missile A1;
     const static Missile A2;
     const static Missile A3;

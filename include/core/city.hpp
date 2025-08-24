@@ -16,6 +16,7 @@ class City {
   double getLongitude() const;
   CityType getType() const;
   bool hasSpy() const;
+  void setSpy(int sp);
 
  private:
   std::string cityName;

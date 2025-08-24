@@ -15,3 +15,6 @@ double City::getLatitude() const { return latitude; }
 double City::getLongitude() const { return longitude; }
 CityType City::getType() const { return type; }
 bool City::hasSpy() const { return spy; }
+void City::setSpy(int sp){
+  spy = sp;
+}
