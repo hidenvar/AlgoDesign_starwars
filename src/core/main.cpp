@@ -16,6 +16,7 @@
 #include "scenario3.hpp"
 #include "scenario4.hpp"
 #include "scenario5.hpp"
+#include "scenario6.hpp"
 #include "scenario7.hpp"
 
 auto printPaths = [](const std::string &label,
