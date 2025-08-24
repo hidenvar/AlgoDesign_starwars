@@ -164,8 +164,7 @@ int main(int argc, char *argv[])
   {
 
     Inventory in;
-    Scenario6 s(g, in);
-    s.solve();
+    Scenario6(g, in).solve();
     break;
   }
   
