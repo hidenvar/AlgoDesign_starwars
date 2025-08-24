@@ -1,0 +1,8 @@
+base1 country_a 0 0 BASE 0 1 A1 5
+normal1 country_a 450 0 NORMAL 0
+normal2 country_a 900 0 NORMAL 0
+base2 country_a 1350 0 BASE 0 1 A1 5
+normal3 country_a 1800 0 NORMAL 0
+normal4 country_a 2250 0 NORMAL 0
+normal5 country_a 2700 0 NORMAL 0
+target1 country_b 2800 0 TARGET 1 2
