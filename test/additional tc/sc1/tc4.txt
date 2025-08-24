@@ -1,0 +1,11 @@
+base1 country_a 10 0 BASE 1 1 D1 2
+base2 country_a 20 0 BASE 1 1 D1 2
+base3 country_a 30 0 BASE 1 1 D1 2
+base4 country_a 1010 0 BASE 1 1 D1 2
+base5 country_a 1020 0 BASE 1 1 D1 2
+base6 country_a 1030 0 BASE 1 1 D1 2
+tg1 country_b 20 100 TARGET 0 1
+tg2 country_b 20 -100 TARGET 1 1
+tg3 country_b 1020 100 TARGET 1 2
+tg4 country_b 1020 -100 TARGET 1 1
+
