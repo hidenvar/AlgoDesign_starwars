@@ -4,6 +4,7 @@
 class Scenario {
  public:
   Scenario(Graph& g);
+  Scenario();
   void printAllCities();
 
   virtual void initialize() = 0;
