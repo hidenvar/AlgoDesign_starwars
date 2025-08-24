@@ -1,17 +1,20 @@
 #include <iostream>
+#include <iomanip>
 
-#include "base_city.hpp"
-#include "graph.hpp"
 #include "input_handler.hpp"
-#include "inventory.hpp"
-#include "scenario1.hpp"
-#include "scenario3.hpp"
 #include "scenario3_input.hpp"
 #include "scenario5_input.hpp"
-#include "scenario5.hpp"
-#include "iomanip"
-#include "target_city.hpp"
 #include "scenario7_input.hpp"
+
+#include "graph.hpp"
+#include "base_city.hpp"
+#include "target_city.hpp"
+#include "inventory.hpp"
+
+#include "scenario1.hpp"
+#include "scenario2.hpp"
+#include "scenario3.hpp"
+#include "scenario5.hpp"
 #include "scenario7.hpp"
 
 auto printPaths = [](const std::string &label,
@@ -127,6 +130,14 @@ int main(int argc, char *argv[])
     break;
   }
 
+  case 2:
+  {
+    InputHandler::loadFromFile(g);
+    Scenario2 s(g);
+    s.solve();
+    break;
+  }
+
   case 3:
   {
     Inventory in;
@@ -134,24 +145,6 @@ int main(int argc, char *argv[])
 
     Scenario3 s(g, in);
     s.solve();
-    auto refmap = s.getMissilePathMap();
-    auto vecB1s = refmap["B1 safe"];
-    auto vecB1r = refmap["B1 revealed"];
-    auto vecB2s = refmap["B2 safe"];
-    auto vecB2r = refmap["B2 revealed"];
-    auto vecC1s = refmap["C1 safe"];
-    auto vecC1r = refmap["C1 revealed"];
-    auto vecC2s = refmap["C2 safe"];
-    auto vecC2r = refmap["C2 revealed"];
-
-    printPaths("B1 safe", vecB1s);
-    printPaths("B1 revealed", vecB1r);
-    printPaths("B2 safe", vecB2s);
-    printPaths("B2 revealed", vecB2r);
-    printPaths("C1 safe", vecC1s);
-    printPaths("C1 revealed", vecC1r);
-    printPaths("C2 safe", vecC2s);
-    printPaths("C2 revealed", vecC2r);
 
     break;
   }
