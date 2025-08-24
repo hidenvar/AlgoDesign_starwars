@@ -14,6 +14,7 @@
 #include "scenario1.hpp"
 #include "scenario2.hpp"
 #include "scenario3.hpp"
+#include "scenario4.hpp"
 #include "scenario5.hpp"
 #include "scenario7.hpp"
 
@@ -123,18 +124,15 @@ int main(int argc, char *argv[])
   {
   case 1:
   {
-    // printAllCities();
     InputHandler::loadFromFile(g);
     Scenario1(g).solve();
-    // s.solve();
     break;
   }
 
   case 2:
   {
     InputHandler::loadFromFile(g);
-    Scenario2 s(g);
-    s.solve();
+    Scenario2(g).solve();
     break;
   }
 
@@ -143,14 +141,15 @@ int main(int argc, char *argv[])
     Inventory in;
     Scenario3Input::loadFromFile(g, in);
 
-    Scenario3 s(g, in);
-    s.solve();
+    Scenario3(g, in).solve();
 
     break;
   }
 
   case 4:
   {
+    InputHandler::loadFromFile(g);
+    Scenario4(g).solve();
     break;
   }
 
@@ -198,7 +197,6 @@ int main(int argc, char *argv[])
     break;
   }
   case 7:
-    Scenario7 s;
-    s.solve();
+    Scenario7().solve();
   }
 }
