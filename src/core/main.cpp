@@ -159,6 +159,16 @@ int main(int argc, char *argv[])
     Scenario5().solve();
     break;
   }
+
+  case 6:
+  {
+
+    Inventory in;
+    Scenario6 s(g, in);
+    s.solve();
+    break;
+  }
+  
   case 7:
     Scenario7().solve();
     break;

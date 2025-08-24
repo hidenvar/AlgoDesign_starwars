@@ -11,6 +11,8 @@
 Scenario5::Scenario5()
     : nights(5, false) {}
 
+Scenario5::Scenario5(Graph g, Inventory in) : Scenario(g), inventory(in), nights(5, false) {}
+
 void Scenario5::solve()
 {
   Scenario5Input::fillInventory(std::cin, inventory);

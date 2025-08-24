@@ -7,14 +7,17 @@
 // hitting the target. We will shoot the weakest missiles using safe paths and
 // if no safe path we use the min missiles we have this way we are always
 // prepared for more spies
-class Scenario5 : public Scenario {
- public:
+class Scenario5 : public Scenario
+{
+public:
   Scenario5();
+  Scenario5(Graph g, Inventory in);
   void initialize();
   void findPaths();
   void solve() override;
 
-  struct PathInfo {
+  struct PathInfo
+  {
     Graph::VertexDescriptor base;
     Graph::VertexDescriptor target;
     std::vector<std::string> cities;
@@ -22,13 +25,16 @@ class Scenario5 : public Scenario {
     double distance;
     double max_gap;
 
-    void updatePathSpies(Scenario5& scenario) {
-      auto& graph = scenario.mapInformation.getCitiesGraphRef();
+    void updatePathSpies(Scenario5 &scenario)
+    {
+      auto &graph = scenario.mapInformation.getCitiesGraphRef();
       auto cityVertices = scenario.mapInformation.getCitiesVertex();
       spyCount = 0;
-      for (const auto& cityName : cities) {
+      for (const auto &cityName : cities)
+      {
         auto it = cityVertices.find(cityName);
-        if (it != cityVertices.end()) {
+        if (it != cityVertices.end())
+        {
           auto vertex = it->second;
           auto cityPtr = graph[vertex];
           spyCount += cityPtr->hasSpy();
@@ -37,7 +43,8 @@ class Scenario5 : public Scenario {
     }
   };
 
-  struct FallbackBase {
+  struct FallbackBase
+  {
     Graph::VertexDescriptor baseDesc;
     std::string baseName;
     std::string missileType;
@@ -46,7 +53,8 @@ class Scenario5 : public Scenario {
     std::vector<PathInfo> paths;
   };
 
-  struct AttackStep {
+  struct AttackStep
+  {
     Graph::VertexDescriptor
         baseVertex;
     std::string baseName;
@@ -56,7 +64,8 @@ class Scenario5 : public Scenario {
     std::vector<std::string> pathCities;
   };
 
-  struct MinimalTarget {
+  struct MinimalTarget
+  {
     std::string targetName;
     int defenseLevel = 0;
     int totalMissilesNeeded = 0;
@@ -69,7 +78,7 @@ class Scenario5 : public Scenario {
   void attack(int night);
   std::vector<bool> nights;
 
- private:
+private:
   Inventory inventory;
   std::vector<PathInfo> paths;
   std::vector<Graph::VertexDescriptor> baseVertices;
@@ -83,16 +92,16 @@ class Scenario5 : public Scenario {
   MinimalTarget findMostEfficientTarget();
 
   std::vector<AttackStep> planMinimalAttack(
-      const std::vector<FallbackBase>& bases, const std::string& targetName,
+      const std::vector<FallbackBase> &bases, const std::string &targetName,
       int missilesNeeded);
 
-  bool executeMinimalAttack(const MinimalTarget& target);
+  bool executeMinimalAttack(const MinimalTarget &target);
 
-  std::vector<std::string> getPathToTarget(const FallbackBase& fb,
-                                           const std::string& targetName);
+  std::vector<std::string> getPathToTarget(const FallbackBase &fb,
+                                           const std::string &targetName);
 
-  void updateInventory(const std::string& missileType, int change);
+  void updateInventory(const std::string &missileType, int change);
 
   std::vector<FallbackBase> collectFallbackBases();
-  int getInventoryCount(const std::string& type);
+  int getInventoryCount(const std::string &type);
 };
