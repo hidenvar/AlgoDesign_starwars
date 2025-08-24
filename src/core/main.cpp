@@ -155,48 +155,11 @@ int main(int argc, char *argv[])
 
   case 5:
   {
-    Inventory in;
-    Scenario5Input::fillInventory(std::cin, in);
-    logInventory(in);
-    Scenario5Input::createCities(std::cin, g);
-    Scenario5 s(g, in);
-    s.initialize();
-    s.findPaths();
-    // printCities(g);
-    s.buildMissilePathMap();
-    s.logMissilePaths();
-    // TODO: solve for night 1 here
-    s.attack(0);
-    Scenario5Input::updateSpies(std::cin, g);
-    // printCities(g);
-    s.buildMissilePathMap();
-    s.logMissilePaths();
-    // TODO: solve for night 2 here
-    s.attack(1);
-    Scenario5Input::updateSpies(std::cin, g);
-    // printCities(g);
-    s.buildMissilePathMap();
-    s.logMissilePaths();
-    // TODO: solve for night 3 here
-    s.attack(2);
-    Scenario5Input::updateSpies(std::cin, g);
-    // printCities(g);
-    s.buildMissilePathMap();
-    s.logMissilePaths();
-    // TODO: solve for night 4 here
-    s.attack(3);
-    Scenario5Input::updateSpies(std::cin, g);
-    // printCities(g);
-    s.buildMissilePathMap();
-    s.logMissilePaths();
-    // TODO: solve for night 5 here
-    s.attack(4);
-
-    for (auto n : s.nights)
-      std::cout << (n ? "✅" : "❌") << " ";
+    Scenario5().solve();
     break;
   }
   case 7:
     Scenario7().solve();
+    break;
   }
 }

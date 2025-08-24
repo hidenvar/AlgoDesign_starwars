@@ -9,7 +9,7 @@
 // prepared for more spies
 class Scenario5 : public Scenario {
  public:
-  Scenario5(Graph, Inventory);
+  Scenario5();
   void initialize();
   void findPaths();
   void solve() override;
