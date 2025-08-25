@@ -11,6 +11,8 @@ It models missile paths between base cities and target cities while considering 
 
 The system supports multiple **scenarios (1–7)**, each adding complexity to the routing and attack strategies.
 
+<img src = "https://github.com/hidenvar/AlgoDesign_starwars/blob/main/test/additional%20tc/sc1/tc5.png">
+
 ---
 
 ## ⚙️ Installation & Setup
